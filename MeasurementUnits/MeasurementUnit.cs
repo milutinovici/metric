@@ -12,54 +12,31 @@ namespace MeasurementUnits
         public double Quantity { get; set; }
         internal Unit Unit { get; set; }
 
-
-        public MeasurementUnit()
-        {
-
-        }
         public MeasurementUnit(double quantity, Unit unit) : base()
         {
             this.Unit = unit;
-            //int powerOfTen = PowerOfTen(quantity);
-            //if (powerOfTen != 0)
-            //{
-            //    Prefix newPrefix = FindClosestPrefix((int)unit.Prefix + powerOfTen);
-            //    int difference = (int)unit.Prefix + powerOfTen - (int)newPrefix;
-            //    Quantity = quantity / Math.Pow(10, powerOfTen - difference);
-            //    unit.Prefix = newPrefix;
-            //}
-            //else
-            //{
-                this.Quantity = quantity;   
-            //}
+            this.Quantity = quantity;   
         }
-            
 
         #region Unit & Unit Operators
-
         public static MeasurementUnit operator +(MeasurementUnit u1, MeasurementUnit u2)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = u1.Unit + u2.Unit;
-            newUnit.Quantity = u1.Quantity * Math.Pow(10, u1.Unit.DeterminePower10(newUnit.Unit.Prefix)) + u2.Quantity * Math.Pow(10, u2.Unit.DeterminePower10(newUnit.Unit.Prefix));
-            return newUnit;
+            var unit = u1.Unit + u2.Unit;
+            var quantity  = u1.Quantity * Math.Pow(10, u1.Unit.DeterminePower10(unit.Prefix)) + u2.Quantity * Math.Pow(10, u2.Unit.DeterminePower10(unit.Prefix));
+            return new MeasurementUnit(quantity, unit);
         }
-
         public static MeasurementUnit operator -(MeasurementUnit u1, MeasurementUnit u2)
         {
             u2 *= -1;
             return u1 + u2;
         }
-
         public static MeasurementUnit operator *(MeasurementUnit u1, MeasurementUnit u2)
         {
-            var unit = new MeasurementUnit();
-            unit.Unit = u1.Unit * u2.Unit;
-            unit.Quantity = u1.Quantity * u2.Quantity * Math.Pow(10, unit.Unit.Power10);
-            unit.Unit.Power10 = 0;
-            return unit;
+            var unit =  u1.Unit * u2.Unit;
+            var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, unit.Power10);
+            unit.Power10 = 0;
+            return new MeasurementUnit(quantity, unit);
         }
-
         public static MeasurementUnit operator /(MeasurementUnit u1, MeasurementUnit u2)
         {
             return u1 * (1 / u2);
@@ -67,68 +44,39 @@ namespace MeasurementUnits
         #endregion
 
         #region Double & Unit Operators
-
         public static MeasurementUnit operator +(double number, MeasurementUnit unit)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit;
-            newUnit.Quantity = unit.Quantity + number;
-            return newUnit;
+            return new MeasurementUnit(unit.Quantity + number, unit.Unit);
         }
-
         public static MeasurementUnit operator +(MeasurementUnit unit, double number)
         {
             return number + unit;
         }
-
         public static MeasurementUnit operator -(double number, MeasurementUnit unit)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit;
-            newUnit.Quantity = number - unit.Quantity;
-            return newUnit;
+            return new MeasurementUnit(number - unit.Quantity, unit.Unit);
         }
-
         public static MeasurementUnit operator -(MeasurementUnit unit, double number)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit;
-            newUnit.Quantity = unit.Quantity - number;
-            return newUnit;
+            return new MeasurementUnit(unit.Quantity - number, unit.Unit);
         }
-
         public static MeasurementUnit operator *(double number, MeasurementUnit unit)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit;
-            newUnit.Quantity = unit.Quantity * number;
-            return newUnit;
+            return new MeasurementUnit(unit.Quantity * number, unit.Unit);
         }
-
         public static MeasurementUnit operator *(MeasurementUnit unit, double number)
         {
             return number * unit;
         }
-
         public static MeasurementUnit operator /(double number, MeasurementUnit unit)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit.Pow(-1);
-            newUnit.Quantity = number / unit.Quantity;
-            return newUnit;
+            return new MeasurementUnit(number / unit.Quantity, unit.Unit.Pow(-1));
         }
-
         public static MeasurementUnit operator /(MeasurementUnit unit, double number)
         {
-            var newUnit = new MeasurementUnit();
-            newUnit.Unit = unit.Unit;
-            newUnit.Quantity = unit.Quantity / number;
-            return unit;
+            return new MeasurementUnit(unit.Quantity / number, unit.Unit);
         }
-
         #endregion
-
-       
 
         private static int PowerOfTen(double quantity)
         {
@@ -149,7 +97,6 @@ namespace MeasurementUnits
             }
             return powerOfTen;
         }
-
         public override string ToString()
         {
             if (Unit is ComplexUnit)
@@ -160,6 +107,5 @@ namespace MeasurementUnits
             }
             return string.Format("{0} {1}", Quantity, Unit);
         }
-
     }
 }

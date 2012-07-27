@@ -11,6 +11,7 @@ namespace MeasurementUnits
 
     public class Unit : IEnumerable<Unit>
     {
+        #region Fields & Properties
         internal int Power10 { get; set; }
         internal event PropertyChangedEventHandler PropertyChanged;
         protected int _power;
@@ -19,7 +20,8 @@ namespace MeasurementUnits
         public virtual Prefix Prefix { get { return _prefix; } set { if (PropertyChanged != null) PropertyChanged((value - _prefix) * _power, new PropertyChangedEventArgs("Prefix")); _prefix = value; } }
         public virtual int Power { get { return _power; } set { _power = value; } }
         public BaseUnit BaseUnit { get; set; }
-
+        #endregion
+        #region Constructors
         public Unit()
         {
             _power = 1;
@@ -41,7 +43,8 @@ namespace MeasurementUnits
         {
             this.Prefix = prefix;
         }
-
+        #endregion
+        #region Operators
         public static Unit operator +(Unit u1, Unit u2)
         {
             if (u1.IsAddable(u2))
@@ -57,12 +60,10 @@ namespace MeasurementUnits
                 throw new GrandmothersAndFrogsException("You can't mix them. You just can't");
             }
         }
-
         public static Unit operator -(Unit u1, Unit u2)
         {
             return u1 + u2;
         }
-
         public static Unit operator *(Unit u1, Unit u2)
         {
             if (u1.BaseUnit == u2.BaseUnit && u1.BaseUnit != 0)
@@ -79,17 +80,15 @@ namespace MeasurementUnits
             }
             else
             {
-                //var newUnit = new ComplexUnit(u1, u2);
-                //return newUnit;
                 return ComplexUnit.Multiply(u1, u2);
             }
         }
-
         public static Unit operator /(Unit u1, Unit u2)
         {
             return u1 * u2.Pow(-1);
         }
-
+        #endregion
+        #region Methods
         public virtual bool IsAddable(Unit u)
         {
             if (Power == u.Power && BaseUnit == u.BaseUnit && u is Unit)
@@ -98,7 +97,6 @@ namespace MeasurementUnits
             }
             return false;
         }
-
         public virtual Unit HasFactor(Unit unit, ref int factor)
         {
             if (unit.BaseUnit == this.BaseUnit)
@@ -108,7 +106,6 @@ namespace MeasurementUnits
             else factor = 0;
             return this;
         }
-
         public override string ToString()
         {
             if (Power == 0)
@@ -124,14 +121,12 @@ namespace MeasurementUnits
                 return Prefix != 0 ? string.Format("{0}{1}{2}", Prefix, BaseUnit, Str.SS(Power)) : string.Format("{0}{1}", BaseUnit, Str.SS(Power));
             }
         }
-
         public static Prefix AveragePrefix(params Prefix[] prefixes)
         {
             var average = prefixes.Average(x => (int)x);
             var averagePrefix = average != 0 ? Enum.GetValues(typeof(Prefix)).Cast<Prefix>().First(x => (int)x >= average) : 0;
             return averagePrefix;
         }
-
         public static Prefix FindClosestPrefix(int powerOfTen)
         {
             int absolutePower = Math.Abs(powerOfTen);
@@ -153,12 +148,10 @@ namespace MeasurementUnits
             }
             return prefix;
         }
-
         public virtual int DeterminePower10(Prefix prefix)
         {
             return Power * ((int)Prefix - (int)prefix);
         }
-
         public virtual Unit Pow(int power)
         {
             var powered = new Unit();
@@ -167,18 +160,14 @@ namespace MeasurementUnits
             powered.Power = this.Power * power;
             return powered;
         }
-
-
         public virtual IEnumerator<Unit> GetEnumerator()
         {
             yield return this;
         }
-
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
         }
-
+        #endregion
     }
-
 }

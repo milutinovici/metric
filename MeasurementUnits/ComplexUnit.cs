@@ -8,7 +8,7 @@ namespace MeasurementUnits
 {
     public class ComplexUnit : Unit
     {
-
+        #region Properties
         public IEnumerable<Unit> Units { get; set; }
         public override int Power
         {
@@ -38,7 +38,6 @@ namespace MeasurementUnits
             }
         }
         public string DerivedUnit { get; private set; }
-
         private static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
         {
             new ComplexUnit("N", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)),
@@ -54,12 +53,12 @@ namespace MeasurementUnits
             new ComplexUnit("T", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)),
             new ComplexUnit("H", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2))
         };
+        #endregion
         #region Constructors
         public ComplexUnit()
         {
             Units = new List<Unit>();
         }
-
         public ComplexUnit(params Unit[] units)
             : this()
         {
@@ -69,25 +68,21 @@ namespace MeasurementUnits
                 unit.PropertyChanged += unit_PropertyChanged;
             }
         }
-
         protected ComplexUnit(int power10, params Unit[] units)
             : this(units)
         {
             Power10 = power10;
         }
-
         protected ComplexUnit(string derivedUnit, params Unit[] units)
             : this(units)
         {
             DerivedUnit = derivedUnit;
         }
-
         protected ComplexUnit(string derivedUnit, int power, params Unit[] units)
             : this(derivedUnit, units)
         {
             _power = power;
         }
-
         protected ComplexUnit(string derivedUnit, Prefix prefix, int power, params Unit[] units)
             : this(derivedUnit, power, units)
         {
@@ -95,7 +90,6 @@ namespace MeasurementUnits
         }
         #endregion
         #region Methods
-
         public static Unit Multiply(params Unit[] units)
         {
             var unts = new List<Unit>();
@@ -111,7 +105,6 @@ namespace MeasurementUnits
             }
             return new ComplexUnit(power10, unts.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit).ToArray());
         }
-
         private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             int i = (int)_prefix + (int)sender;
@@ -119,13 +112,11 @@ namespace MeasurementUnits
             Power10 += (int)newPrefix - i;
             _prefix = newPrefix;
         }
-
         public static ComplexUnit GetBySymbol(string symbol)
         {
             var empty = new Unit(BaseUnit.m, 0);
             return empty * DerivedUnits.First(x => x.DerivedUnit == symbol) as ComplexUnit;
         }
-
         public void FindDerivedUnits()
         {
             var units = new List<Unit>();
@@ -153,7 +144,6 @@ namespace MeasurementUnits
             Units = units;
             this.Power10 += remainPower;
         }
-
         public override Unit HasFactor(Unit unit, ref int factor)
         {
             var u = Factor(unit, ref factor);
@@ -164,7 +154,6 @@ namespace MeasurementUnits
             }
             return u;
         }
-
         private Unit Factor(Unit possibleFactor, ref int factor)
         {
             var remain = this;
@@ -193,7 +182,6 @@ namespace MeasurementUnits
             while (repeat);
             return remain;
         }
-
         public override Unit Pow(int power)
         {
             if (DerivedUnit == null)
@@ -208,7 +196,6 @@ namespace MeasurementUnits
             }
 
         }
-
         public override IEnumerator<Unit> GetEnumerator()
         {
             foreach (var unit in Units)
@@ -216,7 +203,6 @@ namespace MeasurementUnits
                 yield return unit;
             }
         }
-
         public override string ToString()
         {
             if (DerivedUnit == null)
@@ -240,7 +226,6 @@ namespace MeasurementUnits
                     return Power == 1 ? Prefix + DerivedUnit : Prefix + DerivedUnit + Str.SS(Power);
             }
         }
-
         public override bool IsAddable(Unit u)
         {
             var u1 = u as ComplexUnit;
@@ -254,7 +239,6 @@ namespace MeasurementUnits
             }
             return false;
         }
-
         #endregion
         
     }
