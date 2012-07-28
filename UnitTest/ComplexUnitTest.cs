@@ -22,6 +22,13 @@ namespace UnitTest
         }
 
         [TestMethod]
+        public void IsAddableComplexWithDifferentPrefixes()
+        {
+            var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
+            Assert.IsTrue(N.IsAddable(kn));
+        }
+
+        [TestMethod]
         public void MultiplicationOfComplexAndBaseUnit()
         {
             Assert.AreEqual((N * S).ToString(), "m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-1));

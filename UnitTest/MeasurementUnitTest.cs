@@ -134,5 +134,13 @@ namespace UnitTest
             Assert.AreEqual(u.ToString(), "200 kN");
         }
 
+        [TestMethod]
+        public void kmEquals1000m()
+        {
+            var m = new MeasurementUnit(1000, new Unit(BaseUnit.m));
+            var km = new MeasurementUnit(1, new Unit(Prefix.k, BaseUnit.m));
+            Assert.AreEqual(m, km);
+        }
+
     }
 }

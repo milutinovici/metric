@@ -107,5 +107,21 @@ namespace MeasurementUnits
             }
             return string.Format("{0} {1}", Quantity, Unit);
         }
+
+        public override bool Equals(object obj)
+        {
+            var unit = obj as MeasurementUnit;
+            if (unit != null)
+            {
+                if (Unit.IsAddable(unit.Unit))
+                {
+                    var power1 = Unit.Aggregate(0, (x, y) => (int)y.Prefix + y.Power10);
+                    var power2 = unit.Unit.Aggregate(0, (x, y) => (int)y.Prefix + y.Power10);
+                    return Math.Pow(10, power1) * Quantity == Math.Pow(10, power2) * unit.Quantity;
+                }
+                return false;
+            }
+            return false;
+        }
     }
 }

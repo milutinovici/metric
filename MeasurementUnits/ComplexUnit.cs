@@ -229,13 +229,13 @@ namespace MeasurementUnits
         public override bool IsAddable(Unit u)
         {
             var u1 = u as ComplexUnit;
-            if (u1 != null)
+            if (u1 != null && Power == u.Power)
             {
-                if (Power == u.Power && Units.SequenceEqual(u1.Units))
-                {
+                var a = Units.Select(x => new { x.Power, x.BaseUnit });
+                var b = u1.Units.Select(x => new { x.Power, x.BaseUnit });
+                bool addable = !a.Except(b).Any();
+                if (addable)
                     return true;
-                }
-                return false;
             }
             return false;
         }
