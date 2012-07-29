@@ -16,52 +16,24 @@ namespace MeasurementUnits
         public static readonly string dot = "\u00B7";
         public static readonly string minus = "\u207B";
 
-        public Str()
-        {
-            Numerator = new List<string>();
-            Denominator = new List<string>();
-        }
-
-        public string GetStringRepresentation()
-        {
-            if (Numerator.Count > 0 && Denominator.Count > 0)
-            {
-                return string.Format("{0}/{1}", AppendStrings(Numerator), AppendStrings(Denominator));
-            }
-            else if (Numerator.Count > 0)
-            {
-                return string.Format("{0}", AppendStrings(Numerator));
-            }
-            else if (Denominator.Count > 0)
-            {
-                return string.Format("1/{0}", AppendStrings(Denominator));
-            }
-            else
-            {
-                return "";
-            }
-        }
-
-        internal static string AppendStrings(IEnumerable<string> units)
+        internal static string UnitToString(Prefix prefix, string unit, int power, bool fancy = true)
         {
             StringBuilder s = new StringBuilder();
-            foreach (var unit in units)
+            if (power != 0)
             {
-                s.Append(dot);
+                if (prefix != 0)
+                    s.Append(prefix);
                 s.Append(unit);
+                if (power != 1)
+                {
+                    if (fancy)
+                        s.Append(SS(power));
+                    else
+                        s.Append("^").Append(power);
+                }
+                return s.ToString();
             }
-            return s.Remove(0, 1).ToString();
-        }
-
-        internal static string UnitToString(Prefix prefix, string unit, int power)
-        {
-            StringBuilder s = new StringBuilder();
-            if (prefix != 0)
-                s.Append(prefix);
-            s.Append(unit);
-            if (power != 1)
-                s.Append(SS(power));
-            return s.ToString();
+            else return "";
         }
 
         public static string SS(int power)

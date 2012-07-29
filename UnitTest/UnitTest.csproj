@@ -51,6 +51,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ComplexUnitTest.cs" />
+    <Compile Include="UnitParserTest.cs" />
     <Compile Include="UnitTest.cs" />
     <Compile Include="MeasurementUnitTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -99,13 +99,17 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
+            return ToString(true);
+        }
+        public string ToString(bool fancy)
+        {
             if (Unit is ComplexUnit)
             {
                 ((ComplexUnit)Unit).FindDerivedUnits();
                 Quantity *= Math.Pow(10, Unit.Power10);
                 Unit.Power10 = 0;
             }
-            return string.Format("{0} {1}", Quantity, Unit);
+            return string.Format("{0} {1}", Quantity, Unit.ToString(fancy));
         }
 
         public override bool Equals(object obj)
@@ -122,6 +126,11 @@ namespace MeasurementUnits
                 return false;
             }
             return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)Quantity * Unit.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.BaseUnit * y.Power);
         }
     }
 }

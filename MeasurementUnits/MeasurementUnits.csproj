@@ -42,6 +42,7 @@
     <Compile Include="Str.cs" />
     <Compile Include="MeasurementUnit.cs" />
     <Compile Include="Unit.cs" />
+    <Compile Include="UnitParser.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

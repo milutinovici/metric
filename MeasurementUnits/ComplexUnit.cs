@@ -118,8 +118,9 @@ namespace MeasurementUnits
         }
         public static ComplexUnit GetBySymbol(string symbol)
         {
-            var empty = new Unit(BaseUnit.m, 0);
-            return empty * DerivedUnits.First(x => x.DerivedUnit == symbol) as ComplexUnit;
+            var derived = new Unit() * DerivedUnits.First(x => x.DerivedUnit == symbol) as ComplexUnit;
+            derived.DerivedUnit = symbol;
+            return derived;
         }
         public void FindDerivedUnits()
         {
@@ -229,6 +230,10 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
+            return ToString(true);
+        }
+        public override string ToString(bool fancy)
+        {
             if (DerivedUnit == null)
             {
                 if (Units.Count() == 0)
@@ -238,16 +243,16 @@ namespace MeasurementUnits
                 StringBuilder name = new StringBuilder();
                 foreach (var unit in Units)
                 {
-                    name.Append(unit.ToString()).Append(Str.dot);
+                    if(fancy)
+                        name.Append(unit.ToString(fancy)).Append(Str.dot);
+                    else
+                        name.Append(unit.ToString(fancy)).Append("*");
                 }
                 return name.Remove(name.Length - 1, 1).ToString();
             }
             else
             {
-                if(Prefix == 0)
-                    return Power == 1 ? DerivedUnit : DerivedUnit + Str.SS(Power);
-                else
-                    return Power == 1 ? Prefix + DerivedUnit : Prefix + DerivedUnit + Str.SS(Power);
+                return Str.UnitToString(Prefix, DerivedUnit, Power, fancy);
             }
         }
         public override bool IsAddable(Unit u)

@@ -108,19 +108,14 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
-            if (Power == 0)
-            {
-                return "";
-            }
-            else if (Power == 1)
-            {
-                return Prefix != 0 ? string.Format("{0}{1}", Prefix, BaseUnit) : string.Format("{0}", BaseUnit);
-            }
-            else
-            {
-                return Prefix != 0 ? string.Format("{0}{1}{2}", Prefix, BaseUnit, Str.SS(Power)) : string.Format("{0}{1}", BaseUnit, Str.SS(Power));
-            }
+            return ToString(true);
         }
+
+        public virtual string ToString(bool fancy)
+        {
+            return Str.UnitToString(Prefix, BaseUnit.ToString(), Power, fancy);
+        }
+
         public static Prefix AveragePrefix(params Prefix[] prefixes)
         {
             var average = prefixes.Average(x => (int)x);
