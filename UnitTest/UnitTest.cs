@@ -27,62 +27,62 @@ namespace UnitTest
         [TestMethod]
         public void TestToString()
         {
-            Assert.AreEqual(M.ToString(), "m");
+            Assert.AreEqual("m", M.ToString());
         }
 
         [TestMethod]
         public void ToStringWithPrefix()
         {
-            Assert.AreEqual(Kg.ToString(), "kg");
+            Assert.AreEqual("kg", Kg.ToString());
         }
 
         [TestMethod]
         public void ToStringWithPrefixAndPower()
         {
-            Assert.AreEqual(Kg.Pow(2).ToString(), "kg" + Str.SS(2));
+            Assert.AreEqual("kg" + Str.SS(2), Kg.Pow(2).ToString());
         }
 
         [TestMethod]
         public void Addition()
         {
-            Assert.AreEqual((M + M).ToString(), "m");
+            Assert.AreEqual("m", (M + M).ToString());
         }
 
         [TestMethod]
         public void SubstractionWithPrefix()
         {
-            Assert.AreEqual((Kg - Kg).ToString(), "kg");
+            Assert.AreEqual("kg", (Kg - Kg).ToString());
         }
 
         [TestMethod]
         public void Powerment()
         {
-            Assert.AreEqual(M.Pow(2).ToString(), "m" + Str.SS(2));
+            Assert.AreEqual("m" + Str.SS(2), M.Pow(2).ToString());
         }
 
         [TestMethod]
         public void SelfMultiplication()
         {
-            Assert.AreEqual((M * M).ToString(), "m" + Str.SS(2));
+            Assert.AreEqual("m" + Str.SS(2), (M * M).ToString());
         }
 
         [TestMethod]
         public void SelfDivision()
         {
-            Assert.AreEqual((M / M).ToString(), "");
+            Assert.AreEqual("", (M / M).ToString());
         }
 
         [TestMethod]
         public void GMultiplication()
         {
-            Assert.AreEqual((M * S).ToString(), "m" + Str.dot + "s");
+            Assert.AreEqual("m" + Str.dot + "s", (M * S).ToString());
         }
 
         [TestMethod]
         public void FindClosestPrefix()
         {
             var prfx = Unit.FindClosestPrefix(-59);
-            Assert.AreEqual(prfx, Prefix.y);
+            Assert.AreEqual(Prefix.y, prfx);
         }
 
     }

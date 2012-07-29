@@ -31,12 +31,12 @@ namespace UnitTest
         [TestMethod]
         public void MultiplicationOfComplexAndBaseUnit()
         {
-            Assert.AreEqual((N * S).ToString(), "m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-1));
+            Assert.AreEqual("m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-1), (N * S).ToString());
         }
         [TestMethod]
         public void DivisionOfComplexAndBaseUnit()
         {
-            Assert.AreEqual((N / S).ToString(), "m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-3));
+            Assert.AreEqual("m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-3), (N / S).ToString());
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace UnitTest
         {
             var u = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -1));
             var u1 = N / u;
-            Assert.AreEqual(u1.ToString(), "s" + Str.SS(-1));
+            Assert.AreEqual("s" + Str.SS(-1), u1.ToString());
         }
 
         [TestMethod]
@@ -52,7 +52,7 @@ namespace UnitTest
         {
             int power = 0;
             var u = N.HasFactor(S, ref power);
-            Assert.AreEqual(power, -2);
+            Assert.AreEqual(-2, power);
         }
 
         [TestMethod]
@@ -60,7 +60,7 @@ namespace UnitTest
         {
             int power = 0;
             var u = N.Pow(2).HasFactor(N, ref power);
-            Assert.AreEqual(power, 2);
+            Assert.AreEqual(2, power);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace UnitTest
         {
             int power = 0;
             var u = N.HasFactor(N.Pow(-1), ref power);
-            Assert.AreEqual(power, -1);
+            Assert.AreEqual(-1, power);
         }
 
         [TestMethod]
@@ -76,7 +76,7 @@ namespace UnitTest
         {
             ComplexUnit c = (ComplexUnit)N;
             c.FindDerivedUnits();
-            Assert.AreEqual(c.ToString(), "N");
+            Assert.AreEqual("N", c.ToString());
         }
 
         [TestMethod]
@@ -84,7 +84,7 @@ namespace UnitTest
         {
             var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             kn.FindDerivedUnits();
-            Assert.AreEqual(kn.ToString(), "kN");
+            Assert.AreEqual("kN", kn.ToString());
         }
 
         [TestMethod]
@@ -92,7 +92,7 @@ namespace UnitTest
         {
             ComplexUnit c = (ComplexUnit)(N * N);
             c.FindDerivedUnits();
-            Assert.AreEqual(c.ToString(), "N" + Str.SS(2));
+            Assert.AreEqual("N" + Str.SS(2), c.ToString());
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace UnitTest
             var n = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
             ComplexUnit c = (ComplexUnit)(n * kn);
             c.FindDerivedUnits();
-            Assert.AreEqual(c.ToString(), "hN" + Str.SS(2));
+            Assert.AreEqual("hN" + Str.SS(2), c.ToString());
         }
 
         [TestMethod]
@@ -110,7 +110,7 @@ namespace UnitTest
         {
             ComplexUnit c = (ComplexUnit)(N / S);
             c.FindDerivedUnits();
-            Assert.AreEqual(c.ToString(), "N" + Str.dot + "s" + Str.SS(-1));
+            Assert.AreEqual("N" + Str.dot + "s" + Str.SS(-1), c.ToString());
         }
 
         [TestMethod]
@@ -119,7 +119,7 @@ namespace UnitTest
             ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Prefix = Prefix.m;
             var u = n.Units.First();
-            Assert.AreEqual(n.Prefix, Prefix.m);
+            Assert.AreEqual(Prefix.m, n.Prefix);
         }
 
         [TestMethod]
@@ -127,7 +127,7 @@ namespace UnitTest
         {
             ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Units.First().Prefix = Prefix.M;
-            Assert.AreEqual(n.Prefix, Prefix.M);
+            Assert.AreEqual(Prefix.M, n.Prefix);
         }
 
         [TestMethod]
@@ -135,7 +135,7 @@ namespace UnitTest
         {
             ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Units.Last().Prefix = Prefix.k;
-            Assert.AreEqual(n.Prefix, Prefix.μ);
+            Assert.AreEqual(Prefix.μ, n.Prefix);
         }
 
         [TestMethod]
@@ -143,7 +143,7 @@ namespace UnitTest
         {
             ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Units.Last().Prefix = Prefix.c;
-            Assert.AreEqual(n.Prefix, Prefix.k);
+            Assert.AreEqual(Prefix.k, n.Prefix);
         }
 
     }

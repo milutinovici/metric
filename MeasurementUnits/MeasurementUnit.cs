@@ -115,8 +115,8 @@ namespace MeasurementUnits
             {
                 if (Unit.IsAddable(unit.Unit))
                 {
-                    var power1 = Unit.Aggregate(0, (x, y) => (int)y.Prefix + y.Power10);
-                    var power2 = unit.Unit.Aggregate(0, (x, y) => (int)y.Prefix + y.Power10);
+                    var power1 = Unit.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix + y.Power10);
+                    var power2 = unit.Unit.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix + y.Power10);
                     return Math.Pow(10, power1) * Quantity == Math.Pow(10, power2) * unit.Quantity;
                 }
                 return false;

@@ -40,18 +40,22 @@ namespace MeasurementUnits
         public string DerivedUnit { get; private set; }
         private static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
         {
-            new ComplexUnit("N", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)),
-            new ComplexUnit("Pa", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, -1), new Unit(BaseUnit.s, -2)),
-            new ComplexUnit("J", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)),
-            new ComplexUnit("W", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)),
-            new ComplexUnit("C", new Unit(BaseUnit.s), new Unit(BaseUnit.A)),
-            new ComplexUnit("V", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)),
-            new ComplexUnit("F", new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 4), new Unit(BaseUnit.A, 2)),
             new ComplexUnit("Ω", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)),
-            new ComplexUnit("S", new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 3), new Unit(BaseUnit.A, 2)),
+            new ComplexUnit("V", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)),
+            new ComplexUnit("H", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2)),
             new ComplexUnit("Wb", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)),
+
+            new ComplexUnit("F", new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 4), new Unit(BaseUnit.A, 2)),
+            new ComplexUnit("S", new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 3), new Unit(BaseUnit.A, 2)),
+
+            new ComplexUnit("W", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)),
+            new ComplexUnit("J", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)),
+            new ComplexUnit("N", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)),
+            
+            new ComplexUnit("Pa", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, -1), new Unit(BaseUnit.s, -2)),
             new ComplexUnit("T", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)),
-            new ComplexUnit("H", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2))
+            
+            new ComplexUnit("C", new Unit(BaseUnit.s), new Unit(BaseUnit.A)),
         };
         #endregion
         #region Constructors
@@ -122,27 +126,47 @@ namespace MeasurementUnits
             var units = new List<Unit>();
             ComplexUnit remain = this;
             int remainPower = remain.Power10;
+
+            ComplexUnit d = null;
+            ComplexUnit r = this;
+            while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r, ref remainPower))
+            {            
+                units.Add(d);
+            }
+            if (r.Units.Count() != 0 || r.BaseUnit != 0)
+            {
+                units.AddRange(r.SelectMany(x => x));
+            }
+
+            Units = units;
+            this.Power10 += remainPower;
+        }
+        internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain, ref int remainPower)
+        {
+            var dict = new Dictionary<ComplexUnit, ComplexUnit>();
             foreach (ComplexUnit derivedUnit in DerivedUnits)
             {
                 int factor = 0;
-                remain = remain.HasFactor(derivedUnit, ref factor) as ComplexUnit;
+                var r = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
                 if (factor != 0)
                 {
-                    remainPower = remain.Power10;
-                    remainPower *= factor;
-                    var derr = (this / remain);
+                    remainPower = r.Power10 * factor;
+                    var derr = (this / r);
                     var prfx = Unit.FindClosestPrefix(remainPower);
                     remainPower -= (int)prfx;
-                    ComplexUnit der = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, derr);
-                    units.Add(der);
+                    ComplexUnit d = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, derr);
+                    dict.Add(d, r);
                 }
-            } 
-            if (remain.Units.Count() != 0 || remain.BaseUnit != 0)
-            {
-                units.AddRange(remain.SelectMany(x=>x));
             }
-            Units = units;
-            this.Power10 += remainPower;
+            if (dict.Any())
+            {
+                var optimal = dict.OrderBy(x => x.Value.Count()).First();
+                derived = optimal.Key;
+                remain = optimal.Value;
+                return true;
+            }
+            else return false;
+
         }
         public override Unit HasFactor(Unit unit, ref int factor)
         {
@@ -231,8 +255,8 @@ namespace MeasurementUnits
             var u1 = u as ComplexUnit;
             if (u1 != null && Power == u.Power)
             {
-                var a = Units.Select(x => new { x.Power, x.BaseUnit });
-                var b = u1.Units.Select(x => new { x.Power, x.BaseUnit });
+                var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.BaseUnit });
+                var b = u1.Units.SelectMany(x => x).Select(x => new { x.Power, x.BaseUnit });
                 bool addable = !a.Except(b).Any();
                 if (addable)
                     return true;
