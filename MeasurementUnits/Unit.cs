@@ -22,7 +22,7 @@ namespace MeasurementUnits
         public BaseUnit BaseUnit { get; set; }
         #endregion
         #region Constructors
-        public Unit()
+        protected Unit()
         {
             _power = 1;
             Power10 = 0;
@@ -49,10 +49,7 @@ namespace MeasurementUnits
         {
             if (u1.IsAddable(u2))
             {
-                var newUnit = new Unit();
-                newUnit.Prefix = AveragePrefix(u1.Prefix, u2.Prefix);  
-                newUnit.BaseUnit = u1.BaseUnit;
-                newUnit.Power = u1.Power;
+                var newUnit = new Unit(AveragePrefix(u1.Prefix, u2.Prefix), u1.BaseUnit, u1.Power);
                 return newUnit;
             }
             else
@@ -68,14 +65,9 @@ namespace MeasurementUnits
         {
             if (u1.BaseUnit == u2.BaseUnit && u1.BaseUnit != 0)
             {
-                var newUnit = new Unit();
-
                 var averagePrefix = AveragePrefix(u1.Prefix, u2.Prefix);
+                var newUnit = new Unit(averagePrefix, u1.BaseUnit, u1.Power + u2.Power);
                 newUnit.Power10 = u1.DeterminePower10(averagePrefix) + u2.DeterminePower10(averagePrefix);
-
-                newUnit.Prefix = averagePrefix;
-                newUnit.BaseUnit = u1.BaseUnit;
-                newUnit.Power = u1.Power + u2.Power;
                 return newUnit;
             }
             else
@@ -167,10 +159,7 @@ namespace MeasurementUnits
         }
         public virtual Unit Pow(int power)
         {
-            var powered = new Unit();
-            powered.Prefix = this.Prefix;
-            powered.BaseUnit = this.BaseUnit;
-            powered.Power = this.Power * power;
+            var powered = new Unit(Prefix, BaseUnit, Power * power);
             return powered;
         }
         public virtual IEnumerator<Unit> GetEnumerator()

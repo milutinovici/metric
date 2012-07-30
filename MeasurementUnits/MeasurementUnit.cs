@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace MeasurementUnits
@@ -78,6 +79,16 @@ namespace MeasurementUnits
         }
         #endregion
 
+        public static MeasurementUnit Parse(string s)
+        {
+            s = s.Replace(" ","");
+            var d = Regex.Split(s, @"[^0-9\.]+").Where(c => c != "." && c.Trim() != "").First();
+            double q = double.Parse(d);
+            s = s.Replace(d, "");
+            var u = Unit.Parse(s);
+            return new MeasurementUnit(q, u);
+        }
+
         private static int PowerOfTen(double quantity)
         {
             int powerOfTen = 0;
@@ -109,7 +120,7 @@ namespace MeasurementUnits
                 Quantity *= Math.Pow(10, Unit.Power10);
                 Unit.Power10 = 0;
             }
-            return string.Format("{0} {1}", Quantity, Unit.ToString(fancy));
+            return string.Format("{0}{1}", Quantity, Unit.ToString(fancy));
         }
 
         public override bool Equals(object obj)

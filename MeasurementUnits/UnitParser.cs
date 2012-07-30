@@ -10,7 +10,7 @@ namespace MeasurementUnits
     {
         public static Unit Parse(string s)
         {
-            
+            s = s.Replace(" ", "");
             List<Unit> units = new List<Unit>();
 
             var sUnits = s.Split('*');
@@ -38,7 +38,7 @@ namespace MeasurementUnits
 
         private static Unit LinearUnit(string linearUnit)
         {
-            Unit u = new Unit();
+            Unit u = null;
             BaseUnit bu;
             bool success = false;
             string test = linearUnit;

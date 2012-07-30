@@ -62,7 +62,7 @@ namespace MeasurementUnits
         };
         #endregion
         #region Constructors
-        public ComplexUnit()
+        protected ComplexUnit()
         {
             Units = new List<Unit>();
         }
@@ -121,28 +121,27 @@ namespace MeasurementUnits
         }
         public static ComplexUnit GetBySymbol(string symbol)
         {
-            var derived = new Unit() * DerivedUnits.First(x => x.DerivedUnit == symbol) as ComplexUnit;
-            derived.DerivedUnit = symbol;
-            return derived;
+            var derived = DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
+            return new ComplexUnit(symbol, derived);
         }
         public void FindDerivedUnits()
         {
-            var units = new List<Unit>();
-            ComplexUnit remain = this;
-
-            ComplexUnit d = null;
-            ComplexUnit r = this;
-            while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
-            {            
-                units.Add(d);
-            }
-            if (r.Units.Count() != 0 || r.BaseUnit != 0)
+            if (DerivedUnit == null || DerivedUnit == "")
             {
-                units.AddRange(r.SelectMany(x => x));
+                var units = new List<Unit>();
+                ComplexUnit d = null;
+                ComplexUnit r = this;
+                while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
+                {
+                    units.Add(d);
+                }
+                if (r.Units.Count() != 0 || r.BaseUnit != 0)
+                {
+                    units.AddRange(r.SelectMany(x => x));
+                }
+                Units = units;
+                this.Power10 += r.Power10;
             }
-
-            Units = units;
-            this.Power10 += r.Power10;
         }
         internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
         {

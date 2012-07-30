@@ -34,13 +34,13 @@ namespace UnitTest
         [TestMethod]
         public void WithPositivePower()
         {
-            Assert.AreEqual("18 K" + Str.SS(3), K3.ToString());
+            Assert.AreEqual("18K" + Str.SS(3), K3.ToString());
         }
 
         [TestMethod]
         public void WithNegativePower()
         {
-            Assert.AreEqual("2 s" + Str.SS(-2), Sm2.ToString());
+            Assert.AreEqual("2s" + Str.SS(-2), Sm2.ToString());
         }
 
         [TestMethod]
@@ -53,85 +53,85 @@ namespace UnitTest
         [TestMethod]
         public void AdditionWithDifferentPrefixes()
         {
-            Assert.AreEqual("120.05 hm", (M + Km).ToString());
+            Assert.AreEqual("120.05hm", (M + Km).ToString());
         }
 
         [TestMethod]
         public void SubtractionWithDifferentPrefixes()
         {
-            Assert.AreEqual("-119.95 hm", (M - Km).ToString());
+            Assert.AreEqual("-119.95hm", (M - Km).ToString());
         }
 
         [TestMethod]
         public void Multiplication()
         {
-            Assert.AreEqual("20 m" + Str.dot + "A" + Str.dot + "K" + Str.dot + "mol" + Str.SS(-1), (AKMol * M).ToString());
+            Assert.AreEqual("20m" + Str.dot + "A" + Str.dot + "K" + Str.dot + "mol" + Str.SS(-1), (AKMol * M).ToString());
         }
 
         [TestMethod]
         public void MultiplicationWithDifferentPrefixes()
         {
-            Assert.AreEqual("300 dam" + Str.SS(3), (M * Km * M).ToString());
+            Assert.AreEqual("300dam" + Str.SS(3), (M * Km * M).ToString());
         }
 
         [TestMethod]
         public void DoubleMultiplication()
         {
             MeasurementUnit u = AKMol * K3 * M;
-            Assert.AreEqual("360 m" + Str.dot + "A" + Str.dot + "K" + Str.SS(4) + Str.dot + "mol" + Str.SS(-1), u.ToString());
+            Assert.AreEqual("360m" + Str.dot + "A" + Str.dot + "K" + Str.SS(4) + Str.dot + "mol" + Str.SS(-1), u.ToString());
         }
 
         [TestMethod]
         public void MultiplicationThenDivision()
         {
             MeasurementUnit u = AKMol * K3 / M;
-            Assert.AreEqual("14.4 A" + Str.dot + "K" + Str.SS(4) + Str.dot + "m" + Str.SS(-1) + Str.dot + "mol" + Str.SS(-1), u.ToString());
+            Assert.AreEqual("14.4A" + Str.dot + "K" + Str.SS(4) + Str.dot + "m" + Str.SS(-1) + Str.dot + "mol" + Str.SS(-1), u.ToString());
         }
 
         [TestMethod]
         public void MultiplicationThenSubtractionWithPrefixes()
         {
             var u1 = M * Km - M * M;
-            Assert.AreEqual("599.75 dam" + Str.SS(2), u1.ToString());
+            Assert.AreEqual("599.75dam" + Str.SS(2), u1.ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnit()
         {
-            Assert.AreEqual("6 N", N.ToString());
+            Assert.AreEqual("6N", N.ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnit2()
         {
-            Assert.AreEqual("36 N" + Str.SS(2), (N * N).ToString());
+            Assert.AreEqual("36N" + Str.SS(2), (N * N).ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnitWithNegativeExponent()
         {
-            Assert.AreEqual("4 N" + Str.SS(-1), Nm1.ToString());
+            Assert.AreEqual("4N" + Str.SS(-1), Nm1.ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnit2WithPrefix()
         {
             var kn = new MeasurementUnit(4, new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2)));
-            Assert.AreEqual("2.4 hN" + Str.SS(2), (N * kn).ToString());
+            Assert.AreEqual("2.4hN" + Str.SS(2), (N * kn).ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnitWithPrefix()
         {
             var u = new MeasurementUnit(2, new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s,-2 )));
-            Assert.AreEqual("2 kN", u.ToString());
+            Assert.AreEqual("2kN", u.ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnitWithPrefix2()
         {
             var u = new MeasurementUnit(2, new ComplexUnit(new Unit(Prefix.h, BaseUnit.g), new Unit(Prefix.M, BaseUnit.m), new Unit(BaseUnit.s, -2)));
-            Assert.AreEqual("200 kN", u.ToString());
+            Assert.AreEqual("200kN", u.ToString());
         }
 
         [TestMethod]
@@ -148,6 +148,6 @@ namespace UnitTest
             var w = new MeasurementUnit(1000, new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)));
             var kw = new MeasurementUnit(1, new ComplexUnit(new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)));
             Assert.IsTrue(w.Equals(kw));
-        } 
+        }
     }
 }
