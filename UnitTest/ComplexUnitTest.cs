@@ -146,6 +146,14 @@ namespace UnitTest
             Assert.AreEqual(Prefix.k, n.Prefix);
         }
 
+        [TestMethod]
+        public void ParseDerivedComplexUnitPoweredPrefixed()
+        {
+            string s = "mV^-3";
+            var u = UnitParser.Parse(s).Pow(-1);
+            Assert.AreEqual("mV^3", u.ToString(false));
+        }
+
     }
 }
 

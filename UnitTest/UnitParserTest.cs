@@ -102,7 +102,7 @@ namespace UnitTest
         [TestMethod]
         public void ParseDerivedComplexUnitPoweredPrefixed()
         {
-            string s = "mV^-3*ks^2";
+            string s = "ks^2*mV^-3";
             var u = UnitParser.Parse(s);
             Assert.AreEqual(s, u.ToString(false));
         }

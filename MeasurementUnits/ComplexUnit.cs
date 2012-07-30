@@ -69,7 +69,7 @@ namespace MeasurementUnits
         public ComplexUnit(params Unit[] units)
             : this()
         {
-            Units = units;
+            Units = units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit);
             foreach (var unit in Units)
             {
                 unit.PropertyChanged += unit_PropertyChanged;
@@ -110,7 +110,7 @@ namespace MeasurementUnits
                 if (baseUnit.Power != 0)
                     unts.Add(baseUnit);
             }
-            return new ComplexUnit(power10, unts.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit).ToArray());
+            return new ComplexUnit(power10, unts.ToArray());
         }
         private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
@@ -216,8 +216,8 @@ namespace MeasurementUnits
             }
             else
             {
-                var unit = new ComplexUnit(DerivedUnit, Units.ToArray());
-                unit.Power = power;
+                var unit = new ComplexUnit(DerivedUnit, Prefix, Power ,Units.ToArray());
+                unit.Power *= power;
                 return unit;
             }
 
@@ -235,6 +235,10 @@ namespace MeasurementUnits
         }
         public override string ToString(bool fancy)
         {
+            return ToString(fancy, true);
+        }
+        public string ToString(bool fancy, bool negativeExponent)
+        {
             if (DerivedUnit == null)
             {
                 if (Units.Count() == 0)
@@ -242,12 +246,30 @@ namespace MeasurementUnits
                     return "";
                 }
                 StringBuilder name = new StringBuilder();
-                foreach (var unit in Units)
+                string multiplier = fancy ? Str.dot : "*";
+                var group = Units.GroupBy(x => Math.Sign(x.Power));
+                foreach (var unit in group.ElementAt(0))
                 {
-                    if(fancy)
-                        name.Append(unit.ToString(fancy)).Append(Str.dot);
+                    name.Append(unit.ToString(fancy)).Append(multiplier);
+                }
+                if (group.Count() > 1)
+                {
+                    if (negativeExponent)
+                    {
+                        foreach (var unit in group.ElementAt(1))
+                        {
+                            name.Append(unit.ToString(fancy)).Append(multiplier);
+                        }
+                    }
                     else
-                        name.Append(unit.ToString(fancy)).Append("*");
+                    {
+                        name.Remove(name.Length - 1, 1);
+                        name.Append("/");
+                        foreach (var unit in group.ElementAt(1))
+                        {
+                            name.Append(unit.Pow(-1).ToString(fancy)).Append(multiplier);
+                        }
+                    }
                 }
                 return name.Remove(name.Length - 1, 1).ToString();
             }
@@ -256,6 +278,8 @@ namespace MeasurementUnits
                 return Str.UnitToString(Prefix, DerivedUnit, Power, fancy);
             }
         }
+
+
         public override bool IsAddable(Unit u)
         {
             var u1 = u as ComplexUnit;
