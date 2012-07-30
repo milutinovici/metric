@@ -56,6 +56,9 @@ namespace MeasurementUnits
             new ComplexUnit("T", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)),
             
             new ComplexUnit("C", new Unit(BaseUnit.s), new Unit(BaseUnit.A)),
+            new ComplexUnit("Gy", new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)),
+            new ComplexUnit("lx", new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)),
+            new ComplexUnit("kat", new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)),
         };
         #endregion
         #region Constructors
@@ -126,11 +129,10 @@ namespace MeasurementUnits
         {
             var units = new List<Unit>();
             ComplexUnit remain = this;
-            int remainPower = remain.Power10;
 
             ComplexUnit d = null;
             ComplexUnit r = this;
-            while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r, ref remainPower))
+            while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
             {            
                 units.Add(d);
             }
@@ -140,9 +142,9 @@ namespace MeasurementUnits
             }
 
             Units = units;
-            this.Power10 += remainPower;
+            this.Power10 += r.Power10;
         }
-        internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain, ref int remainPower)
+        internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
         {
             var dict = new Dictionary<ComplexUnit, ComplexUnit>();
             foreach (ComplexUnit derivedUnit in DerivedUnits)
@@ -151,18 +153,18 @@ namespace MeasurementUnits
                 var r = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
                 if (factor != 0)
                 {
-                    remainPower = r.Power10 * factor;
-                    var derr = (this / r);
+                    var remainPower = r.Power10 * factor;
+                    var testDerived = (this / r);
                     var prfx = Unit.FindClosestPrefix(remainPower);
-                    remainPower -= (int)prfx;
-                    ComplexUnit d = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, derr);
+                    ComplexUnit d = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, testDerived);
+                    r.Power10 = remainPower - (int)d.Prefix;
                     dict.Add(d, r);
                 }
             }
             if (dict.Any())
             {
-                var optimal = dict.OrderBy(x => x.Value.Count()).First();
-                derived = optimal.Key;
+                var optimal = dict.OrderBy(x => x.Value.Count()).First();          
+                derived = optimal.Key;  
                 remain = optimal.Value;
                 return true;
             }

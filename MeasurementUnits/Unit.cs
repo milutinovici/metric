@@ -143,6 +143,24 @@ namespace MeasurementUnits
             }
             return prefix;
         }
+        public static Unit Parse(string s)
+        {
+            return UnitParser.Parse(s);
+        }
+        public static bool TryParse(string s, out Unit unit)
+        {
+            try
+            {
+                unit = UnitParser.Parse(s);
+                return true;
+            }
+            catch
+            {
+                unit = null;
+                return false;
+            }
+        }
+
         public virtual int DeterminePower10(Prefix prefix)
         {
             return Power * ((int)Prefix - (int)prefix);

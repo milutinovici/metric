@@ -107,6 +107,22 @@ namespace UnitTest
             Assert.AreEqual(s, u.ToString(false));
         }
 
+        [TestMethod]
+        public void ParseDerivedLength2()
+        {
+            string s = "Pa";
+            var u = UnitParser.Parse(s);
+            Assert.AreEqual(s, u.ToString(false));
+        }
+
+        [TestMethod]
+        public void ParseDerivedLength3PrefixedPowered()
+        {
+            string s = "mkat^2";
+            var u = UnitParser.Parse(s);
+            Assert.AreEqual(s, u.ToString(false));
+        }
+
         
     }
 }

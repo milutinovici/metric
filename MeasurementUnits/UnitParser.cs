@@ -14,33 +14,16 @@ namespace MeasurementUnits
             List<Unit> units = new List<Unit>();
 
             var sUnits = s.Split('*');
-            foreach (string sUnit in sUnits)
+            foreach (string singleUnit in sUnits)
             {
                 int pw = 1;
-                BaseUnit bu = 0;
-                Prefix px = 0;
-                var unit = sUnit.Split('^');
+                var unit = singleUnit.Split('^');
                 if (unit.Count() > 1)
                 {
                     pw = int.Parse(unit[1]);
                 }
-                if (unit[0].Length > 1)
-                {
-                    px = (Prefix)Enum.Parse(typeof(Prefix), unit[0][0].ToString());
-                    unit[0] = unit[0].Substring(1, unit[0].Length - 1);
-                }
-                Unit u;
-                try
-                {
-                    bu = (BaseUnit)Enum.Parse(typeof(BaseUnit), unit[0]);
-                    u = new Unit(px, bu, pw);
-                }
-                catch (ArgumentException)
-                {
-                    u = ComplexUnit.GetBySymbol(unit[0]);
-                    u.Prefix = px;
-                    u.Power = pw;
-                }
+                Unit u = LinearUnit(unit[0]);
+                u.Power = pw;
                 units.Add(u);
             }
             if (units.Count == 1)
@@ -51,6 +34,36 @@ namespace MeasurementUnits
             {
                 return new ComplexUnit(units.ToArray());
             }
+        }
+
+        private static Unit LinearUnit(string linearUnit)
+        {
+            Unit u = new Unit();
+            BaseUnit bu;
+            bool success = false;
+            string test = linearUnit;
+            for (int i = linearUnit.Length - 1; i >= 0; i--)
+            {
+                test = linearUnit.Substring(i);
+                success = Enum.TryParse<BaseUnit>(test, out bu);
+                if (success)
+                {
+                    u = new Unit(bu);
+                    break;
+                }
+                try
+                {
+                    u = ComplexUnit.GetBySymbol(test);
+                    break;
+                }
+                catch { }
+            }
+            if (linearUnit.Length - test.Length == 1)
+            {
+                Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
+                u.Prefix = px;
+            }
+            return u;
         }
     }
 }
