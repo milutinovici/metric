@@ -24,7 +24,7 @@ namespace UnitTest
         {
             string s = "m^2";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -40,7 +40,7 @@ namespace UnitTest
         {
             string s = "km^3";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -48,7 +48,15 @@ namespace UnitTest
         {
             string s = "m*s";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
+        }
+
+        [TestMethod]
+        public void ParseComplexUnitDivided()
+        {
+            string s = "m/s";
+            var u = UnitParser.Parse(s);
+            Assert.AreEqual(s, u.ToString("d"));
         }
 
         [TestMethod]
@@ -56,7 +64,7 @@ namespace UnitTest
         {
             string s = "m^2*s";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -64,7 +72,15 @@ namespace UnitTest
         {
             string s = "km^2*s^-1";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
+        }
+
+        [TestMethod]
+        public void ParseComplexUnitDividedPoweredPrefixed()
+        {
+            string s = "m^3/s^2";
+            var u = UnitParser.Parse(s);
+            Assert.AreEqual(s, u.ToString("cd"));
         }
 
         [TestMethod]
@@ -80,7 +96,7 @@ namespace UnitTest
         {
             string s = "V^2";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -96,15 +112,16 @@ namespace UnitTest
         {
             string s = "mV^-3";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
         public void ParseDerivedComplexUnitPoweredPrefixed()
         {
-            string s = "ks^2*mV^-3";
-            var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            string s = "mol^2*mV^-3";
+            var u = UnitParser.Parse(s) as ComplexUnit;
+            u.FindDerivedUnits();
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -112,7 +129,7 @@ namespace UnitTest
         {
             string s = "Pa";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -120,7 +137,7 @@ namespace UnitTest
         {
             string s = "mkat^2";
             var u = UnitParser.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         [TestMethod]
@@ -128,7 +145,7 @@ namespace UnitTest
         {
             string s = "16.25MT^2";
             var u = MeasurementUnit.Parse(s);
-            Assert.AreEqual(s, u.ToString(false));
+            Assert.AreEqual(s, u.ToString("c"));
         }
 
         

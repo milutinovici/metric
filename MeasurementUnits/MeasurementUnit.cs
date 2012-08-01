@@ -110,17 +110,18 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
-            return ToString(true);
+            return ToString("");
         }
-        public string ToString(bool fancy)
+        public string ToString(string format)
         {
+            format = format.ToLower();
             if (Unit is ComplexUnit)
             {
                 ((ComplexUnit)Unit).FindDerivedUnits();
                 Quantity *= Math.Pow(10, Unit.Power10);
                 Unit.Power10 = 0;
             }
-            return string.Format("{0}{1}", Quantity, Unit.ToString(fancy));
+            return string.Format("{0}{1}", Quantity, Unit.ToString(format));
         }
 
         public override bool Equals(object obj)

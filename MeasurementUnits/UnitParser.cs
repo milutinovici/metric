@@ -11,9 +11,21 @@ namespace MeasurementUnits
         public static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-            List<Unit> units = new List<Unit>();
 
+            var rational = s.Split('/');
+            Unit numerator = Polynome(rational[0], true);
+            if (rational.Length == 2)
+            {
+                Unit denominator = Polynome(rational[1], false);
+                return ComplexUnit.Multiply(numerator, denominator);
+            }
+            return numerator;
+        }
+
+        private static Unit Polynome(string s, bool up)
+        {
             var sUnits = s.Split('*');
+            List<Unit> units = new List<Unit>();
             foreach (string singleUnit in sUnits)
             {
                 int pw = 1;
@@ -21,6 +33,10 @@ namespace MeasurementUnits
                 if (unit.Count() > 1)
                 {
                     pw = int.Parse(unit[1]);
+                }
+                if (!up)
+                {
+                    pw *= -1;
                 }
                 Unit u = LinearUnit(unit[0]);
                 u.Power = pw;
@@ -32,7 +48,7 @@ namespace MeasurementUnits
             }
             else
             {
-                return new ComplexUnit(units.ToArray());
+                return ComplexUnit.Multiply(units.ToArray());
             }
         }
 

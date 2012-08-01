@@ -100,11 +100,13 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
-            return ToString(true);
+            return ToString("");
         }
 
-        public virtual string ToString(bool fancy)
+        public virtual string ToString(string format)
         {
+            format = format.ToLower();
+            bool fancy = !format.Contains("c");
             return Str.UnitToString(Prefix, BaseUnit.ToString(), Power, fancy);
         }
 
