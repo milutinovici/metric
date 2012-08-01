@@ -17,7 +17,11 @@ namespace MeasurementUnits
         protected int _power;
         protected Prefix _prefix;
 
-        public virtual Prefix Prefix { get { return _prefix; } set { if (PropertyChanged != null) PropertyChanged((value - _prefix) * _power, new PropertyChangedEventArgs("Prefix")); _prefix = value; } }
+        public virtual Prefix Prefix
+        {
+            get { return _prefix; }
+            set { if (PropertyChanged != null) PropertyChanged((value - _prefix) * _power, new PropertyChangedEventArgs("Prefix")); _prefix = value; }
+        }
         public virtual int Power { get { return _power; } set { _power = value; } }
         public BaseUnit BaseUnit { get; set; }
         #endregion

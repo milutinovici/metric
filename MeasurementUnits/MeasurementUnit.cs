@@ -11,11 +11,12 @@ namespace MeasurementUnits
     public class MeasurementUnit
     {
         public double Quantity { get; set; }
-        internal Unit Unit { get; set; }
+        public Unit Unit { get;private set; }
 
         public MeasurementUnit(double quantity, Unit unit) : base()
         {
             this.Unit = unit;
+            this.Unit.PropertyChanged += Unit_PropertyChanged;
             this.Quantity = quantity;   
         }
 
@@ -87,6 +88,12 @@ namespace MeasurementUnits
             s = s.Replace(d, "");
             var u = Unit.Parse(s);
             return new MeasurementUnit(q, u);
+        }
+
+        void Unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            int power10 = (int)sender * -1;
+            Quantity *= Math.Pow(10, power10); 
         }
 
         private static int PowerOfTen(double quantity)

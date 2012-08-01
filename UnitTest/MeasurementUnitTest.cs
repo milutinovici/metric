@@ -149,5 +149,15 @@ namespace UnitTest
             var kw = new MeasurementUnit(1, new ComplexUnit(new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)));
             Assert.IsTrue(w.Equals(kw));
         }
+
+        [TestMethod]
+        public void kJTo1000J()
+        {
+            var kJ = MeasurementUnit.Parse("1kJ");
+            kJ.Unit.Prefix = 0;
+            Assert.AreEqual("1000J", kJ.ToString());
+        }
+
+
     }
 }
