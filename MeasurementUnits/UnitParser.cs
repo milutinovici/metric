@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace MeasurementUnits
             return numerator;
         }
 
-        private static Unit Polynome(string s, bool up)
+        private static Unit Polynome(string s, bool numerator)
         {
             var sUnits = s.Split('*');
             List<Unit> units = new List<Unit>();
@@ -34,7 +35,7 @@ namespace MeasurementUnits
                 {
                     pw = int.Parse(unit[1]);
                 }
-                if (!up)
+                if (!numerator)
                 {
                     pw *= -1;
                 }
@@ -81,5 +82,6 @@ namespace MeasurementUnits
             }
             return u;
         }
+
     }
 }

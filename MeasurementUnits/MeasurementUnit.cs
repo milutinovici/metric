@@ -89,31 +89,23 @@ namespace MeasurementUnits
             var u = Unit.Parse(s);
             return new MeasurementUnit(q, u);
         }
-
+        public static bool TryParse(string s, out MeasurementUnit unit)
+        {
+            try
+            {
+                unit = MeasurementUnit.Parse(s);
+                return true;
+            }
+            catch
+            {
+                unit = null;
+                return false;
+            }
+        }
         void Unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             int power10 = (int)sender * -1;
             Quantity *= Math.Pow(10, power10); 
-        }
-
-        private static int PowerOfTen(double quantity)
-        {
-            int powerOfTen = 0;
-            if (Math.Abs(quantity) > 1)
-            {
-                while (quantity % 10 == 0)
-                {
-                    powerOfTen++;
-                    quantity /= 10;
-                }
-            }
-            else
-            {
-                string test = Convert.ToString(quantity);
-                int s = (test.IndexOf(".") + 1);
-                powerOfTen = -((test.Length) - s);
-            }
-            return powerOfTen;
         }
         public override string ToString()
         {
@@ -130,7 +122,6 @@ namespace MeasurementUnits
             }
             return string.Format("{0}{1}", Quantity, Unit.ToString(format));
         }
-
         public override bool Equals(object obj)
         {
             var unit = obj as MeasurementUnit;
@@ -146,7 +137,6 @@ namespace MeasurementUnits
             }
             return false;
         }
-
         public override int GetHashCode()
         {
             return (int)Quantity * Unit.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.BaseUnit * y.Power);

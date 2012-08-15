@@ -9,9 +9,6 @@ namespace MeasurementUnits
 {
     public class Str
     {
-        public List<string> Numerator { get; set; }
-        public List<string> Denominator { get; set; } 
-
         private static readonly string[] SuperscriptDigits = new string[] { "\u2070", "\u00b9", "\u00b2", "\u00b3", "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079" };
         public static readonly string dot = "\u00B7";
         public static readonly string minus = "\u207B";

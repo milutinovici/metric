@@ -38,6 +38,7 @@ namespace MeasurementUnits
             }
         }
         public string DerivedUnit { get; private set; }
+        #region Derived Units
         private static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
         {
             new ComplexUnit("Ω", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)),
@@ -60,6 +61,7 @@ namespace MeasurementUnits
             new ComplexUnit("lx", new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)),
             new ComplexUnit("kat", new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)),
         };
+        #endregion
         #endregion
         #region Constructors
         protected ComplexUnit()
@@ -118,6 +120,12 @@ namespace MeasurementUnits
             return units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit);
         }
 
+        public static ComplexUnit GetBySymbol(string symbol)
+        {
+            var derived = DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
+            return new ComplexUnit(symbol, derived);
+        }
+
         private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             int i = (int)_prefix + (int)sender;
@@ -125,11 +133,21 @@ namespace MeasurementUnits
             Power10 += (int)newPrefix - i;
             _prefix = newPrefix;
         }
-        public static ComplexUnit GetBySymbol(string symbol)
+
+        public override Unit Pow(int power)
         {
-            var derived = DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
-            return new ComplexUnit(symbol, derived);
+            if (DerivedUnit == null)
+            {
+                return new ComplexUnit(Units.Select(x => x.Pow(power)).ToArray());
+            }
+            else
+            {
+                var unit = new ComplexUnit(DerivedUnit, Prefix, Power, Units.ToArray());
+                unit.Power *= power;
+                return unit;
+            }
         }
+
         public void FindDerivedUnits()
         {
             if (DerivedUnit == null || DerivedUnit == "")
@@ -149,6 +167,7 @@ namespace MeasurementUnits
                 this.Power10 += r.Power10;
             }
         }
+
         internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
         {
             var dict = new Dictionary<ComplexUnit, ComplexUnit>();
@@ -173,9 +192,9 @@ namespace MeasurementUnits
                 remain = optimal.Value;
                 return true;
             }
-            else return false;
-
+            return false;
         }
+
         public override Unit HasFactor(Unit unit, ref int factor)
         {
             var u = Factor(unit, ref factor);
@@ -186,6 +205,7 @@ namespace MeasurementUnits
             }
             return u;
         }
+
         private Unit Factor(Unit possibleFactor, ref int factor)
         {
             var remain = this;
@@ -214,20 +234,7 @@ namespace MeasurementUnits
             while (repeat);
             return remain;
         }
-        public override Unit Pow(int power)
-        {
-            if (DerivedUnit == null)
-            {
-                return new ComplexUnit(Units.Select(x => x.Pow(power)).ToArray());
-            }
-            else
-            {
-                var unit = new ComplexUnit(DerivedUnit, Prefix, Power ,Units.ToArray());
-                unit.Power *= power;
-                return unit;
-            }
 
-        }
         public override IEnumerator<Unit> GetEnumerator()
         {
             foreach (var unit in Units)
@@ -235,6 +242,7 @@ namespace MeasurementUnits
                 yield return unit;
             }
         }
+
         public override string ToString()
         {
             return ToString("");
@@ -286,7 +294,6 @@ namespace MeasurementUnits
             }
         }
 
-
         public override bool IsAddable(Unit u)
         {
             var u1 = u as ComplexUnit;
@@ -301,6 +308,5 @@ namespace MeasurementUnits
             return false;
         }
         #endregion
-        
     }
 }
