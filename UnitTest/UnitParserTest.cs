@@ -143,7 +143,7 @@ namespace UnitTest
         [TestMethod]
         public void ParseMeasurementPrefixedPowered()
         {
-            string s = "16.25MT^2";
+            string s = 16.25 + "MT^2";
             var u = MeasurementUnit.Parse(s);
             Assert.AreEqual(s, u.ToString("c"));
         }

@@ -83,7 +83,7 @@ namespace MeasurementUnits
         public static MeasurementUnit Parse(string s)
         {
             s = s.Replace(" ","");
-            var d = Regex.Split(s, @"[^0-9\.]+").Where(c => c != "." && c.Trim() != "").First();
+            var d = Regex.Split(s, @"[^0-9\.,]+").Where(c => c != "." && c.Trim() != "").First();
             double q = double.Parse(d);
             s = s.Replace(d, "");
             var u = Unit.Parse(s);
