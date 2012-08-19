@@ -12,7 +12,7 @@ namespace MeasurementUnits
         public static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-
+            //s = ConvertSuperscript(s);
             var rational = s.Split('/');
             Unit numerator = Polynome(rational[0], true);
             if (rational.Length == 2)
@@ -25,7 +25,9 @@ namespace MeasurementUnits
 
         private static Unit Polynome(string s, bool numerator)
         {
-            var sUnits = s.Split('*');
+            char dot;
+            char.TryParse(Str.dot, out dot);
+            var sUnits = s.Split('*', dot);
             List<Unit> units = new List<Unit>();
             foreach (string singleUnit in sUnits)
             {
@@ -82,6 +84,28 @@ namespace MeasurementUnits
             }
             return u;
         }
+        //public static string ConvertSuperscript(string value)
+        //{
+        //    string stringFormKd = value.Normalize(NormalizationForm.FormKD);
+        //    stringFormKd = stringFormKd.Replace((char)8722, '-');
+        //    StringBuilder stringBuilder = new StringBuilder();
+        //    bool added = false;
+        //    foreach (char character in stringFormKd)
+        //    {
+        //        UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(character);
+        //        if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+        //        {
+        //            if (character == '^') added = true;
+        //            if ((unicodeCategory == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
+        //            {
+        //                stringBuilder.Append('^');
+        //                added = true;
+        //            }
+        //            stringBuilder.Append(character);
+        //        }
+        //    }
 
+        //    return stringBuilder.ToString().Normalize(NormalizationForm.FormKC);
+        //}
     }
 }

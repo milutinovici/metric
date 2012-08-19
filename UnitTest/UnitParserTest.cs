@@ -148,6 +148,21 @@ namespace UnitTest
             Assert.AreEqual(s, u.ToString("c"));
         }
 
-        
+        //[TestMethod]
+        //public void ConvertSuperscript()
+        //{
+        //    string s = "MT" + Str.SS(2);
+        //    var normal = UnitParser.ConvertSuperscript(s);
+        //    Assert.AreEqual("MT^2", normal);
+        //}
+
+        //[TestMethod]
+        //public void ParseMixed()
+        //{
+        //    string s = "12MT" + Str.SS(-2) + Str.dot + "kmol^-1";
+        //    var u = MeasurementUnit.Parse(s);
+        //    Assert.AreEqual(s, u.ToString());
+        //}
+ 
     }
 }
