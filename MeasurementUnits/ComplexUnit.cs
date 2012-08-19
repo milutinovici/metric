@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -101,18 +102,10 @@ namespace MeasurementUnits
         #region Methods
         public static Unit Multiply(params Unit[] units)
         {
-            var unts = new List<Unit>();
-            int power10 = 0;
             var groups = units.SelectMany(x => x).GroupBy(x => x.BaseUnit);
-            foreach (var group in groups)
-            {
-                var baseUnit = group.Aggregate((x, y) => x * y);
-                power10 += baseUnit.Power10;
-                baseUnit.Power10 = 0;
-                if (baseUnit.Power != 0)
-                    unts.Add(baseUnit);
-            }
-            return new ComplexUnit(power10, unts.ToArray());
+            var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y));
+            int power10 = multiplied.Sum(x => x.Power10);
+            return new ComplexUnit(power10, multiplied.Where(x=>x.Power != 0).ToArray());
         }
 
         private static IEnumerable<Unit> OrderUnits(IEnumerable<Unit> units)
@@ -170,8 +163,8 @@ namespace MeasurementUnits
 
         internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
         {
-            var dict = new Dictionary<ComplexUnit, ComplexUnit>();
-            foreach (ComplexUnit derivedUnit in DerivedUnits)
+            var dict = new ConcurrentDictionary<ComplexUnit, ComplexUnit>();
+            Parallel.ForEach(DerivedUnits, derivedUnit =>
             {
                 int factor = 0;
                 var r = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
@@ -182,9 +175,9 @@ namespace MeasurementUnits
                     var prfx = Unit.FindClosestPrefix(remainPower);
                     ComplexUnit d = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, testDerived);
                     r.Power10 = remainPower - (int)d.Prefix;
-                    dict.Add(d, r);
+                    dict.AddOrUpdate(d, r, (x, y) => y);
                 }
-            }
+            });
             if (dict.Any())
             {
                 var optimal = dict.OrderBy(x => x.Value.Count()).First();          
