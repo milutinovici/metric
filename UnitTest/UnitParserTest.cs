@@ -80,7 +80,7 @@ namespace UnitTest
         {
             string s = "1m^3/s^2";
             var u = Unit.Parse(s);
-            Assert.AreEqual(s, u.ToString("cd"));
+            Assert.AreEqual(s, u.ToString("cdb"));
         }
 
         [TestMethod]
@@ -120,7 +120,6 @@ namespace UnitTest
         {
             string s = "1K*mV^-2";
             var u = Unit.Parse(s) as ComplexUnit;
-            u.FindDerivedUnits();
             Assert.AreEqual(s, u.ToString("c"));
         }
 
@@ -160,8 +159,7 @@ namespace UnitTest
         public void ParseMixed()
         {
             string s = "12MT^-2*kmol^-1";
-            var u = Unit.Parse(s) as ComplexUnit;
-            u.FindDerivedUnits();
+            var u = Unit.Parse(s);
             Assert.AreEqual(s, u.ToString("c"));
         }
  

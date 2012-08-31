@@ -165,7 +165,7 @@ namespace MeasurementUnits
                 {
                     units.AddRange(r.SelectMany(x => x));
                 }
-                Quantity = d.Quantity;
+                Quantity = d != null ? d.Quantity : r.Quantity;
                 Units =  OrderUnits(units);
             }
         }
@@ -258,9 +258,11 @@ namespace MeasurementUnits
         public override string ToString(string format)
         {
             format = format.ToLower();
-            bool fancy = !format.Contains("c");
-            bool negativeExponent = !format.Contains("d");
-            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; 
+            bool findDerived = DerivedUnit == null && !format.Contains("b");//base units only
+            if (findDerived) FindDerivedUnits();
+            bool fancy = !format.Contains("c");//common
+            bool negativeExponent = !format.Contains("d");// use '/'
+            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // display quanttity
             if (DerivedUnit == null)
             {
                 if (Units.Count() == 0)

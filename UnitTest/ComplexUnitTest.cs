@@ -36,7 +36,7 @@ namespace UnitTest
         [TestMethod]
         public void DivisionOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-3), (N / S).ToString());
+            Assert.AreEqual("1N" + Str.dot + "s" + Str.SS(-1), (N / S).ToString());
         }
 
         [TestMethod]
@@ -74,16 +74,13 @@ namespace UnitTest
         [TestMethod]
         public void RecognizeDerivedUnit()
         {
-            ComplexUnit c = (ComplexUnit)N;
-            c.FindDerivedUnits();
-            Assert.AreEqual("1N", c.ToString());
+            Assert.AreEqual("1N", N.ToString());
         }
 
         [TestMethod]
         public void RecognizeDerivedUnitWithPrefix()
         {
             var kn = new ComplexUnit(1, new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            kn.FindDerivedUnits();
             Assert.AreEqual("1kN", kn.ToString());
         }
 
@@ -91,7 +88,6 @@ namespace UnitTest
         public void MultiplyDerivedUnits()
         {
             ComplexUnit c = N * N as ComplexUnit;
-            c.FindDerivedUnits();
             Assert.AreEqual("1N" + Str.SS(2), c.ToString());
         }
 
@@ -100,8 +96,7 @@ namespace UnitTest
         {
             var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             var n = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
-            var c = n * kn as ComplexUnit;
-            c.FindDerivedUnits();
+            var c = n * kn;
             Assert.AreEqual("10daN" + Str.SS(2), c.ToString());
         }
 
@@ -109,7 +104,6 @@ namespace UnitTest
         public void ComplexDerivedUnit()
         {
             ComplexUnit c = (ComplexUnit)(N / S);
-            c.FindDerivedUnits();
             Assert.AreEqual("1N" + Str.dot + "s" + Str.SS(-1), c.ToString());
         }
 
@@ -158,7 +152,6 @@ namespace UnitTest
         public void RecognizeDerivedUnitWithPrefix2()
         {
             var u = new ComplexUnit(2, new Unit(Prefix.h, BaseUnit.g), new Unit(Prefix.M, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            u.FindDerivedUnits();
             Assert.AreEqual("200kN", u.ToString());
         }
         [TestMethod]
