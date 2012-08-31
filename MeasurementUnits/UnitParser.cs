@@ -77,6 +77,7 @@ namespace MeasurementUnits
                 }
                 catch { }
             }
+            if (u == null) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
             if (linearUnit.Length - test.Length == 1)
             {
                 Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());

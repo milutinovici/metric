@@ -40,7 +40,6 @@
     <Compile Include="Prefix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Str.cs" />
-    <Compile Include="MeasurementUnit.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="UnitParser.cs" />
   </ItemGroup>

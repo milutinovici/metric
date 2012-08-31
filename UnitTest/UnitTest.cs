@@ -27,55 +27,55 @@ namespace UnitTest
         [TestMethod]
         public void TestToString()
         {
-            Assert.AreEqual("m", M.ToString());
+            Assert.AreEqual("1m", M.ToString());
         }
 
         [TestMethod]
         public void ToStringWithPrefix()
         {
-            Assert.AreEqual("kg", Kg.ToString());
+            Assert.AreEqual("1kg", Kg.ToString());
         }
 
         [TestMethod]
         public void ToStringWithPrefixAndPower()
         {
-            Assert.AreEqual("kg" + Str.SS(2), Kg.Pow(2).ToString());
+            Assert.AreEqual("1kg" + Str.SS(2), Kg.Pow(2).ToString());
         }
 
         [TestMethod]
         public void Addition()
         {
-            Assert.AreEqual("m", (M + M).ToString());
+            Assert.AreEqual("2m", (M + M).ToString());
         }
 
         [TestMethod]
         public void SubstractionWithPrefix()
         {
-            Assert.AreEqual("kg", (Kg - Kg).ToString());
+            Assert.AreEqual("0kg", (Kg - Kg).ToString());
         }
 
         [TestMethod]
         public void Powerment()
         {
-            Assert.AreEqual("m" + Str.SS(2), M.Pow(2).ToString());
+            Assert.AreEqual("1m" + Str.SS(2), M.Pow(2).ToString());
         }
 
         [TestMethod]
         public void SelfMultiplication()
         {
-            Assert.AreEqual("m" + Str.SS(2), (M * M).ToString());
+            Assert.AreEqual("1m" + Str.SS(2), (M * M).ToString());
         }
 
         [TestMethod]
         public void SelfDivision()
         {
-            Assert.AreEqual("", (M / M).ToString());
+            Assert.AreEqual("1", (M / M).ToString());
         }
 
         [TestMethod]
         public void GMultiplication()
         {
-            Assert.AreEqual("m" + Str.dot + "s", (M * S).ToString());
+            Assert.AreEqual("1m" + Str.dot + "s", (M * S).ToString());
         }
 
         [TestMethod]
@@ -85,5 +85,12 @@ namespace UnitTest
             Assert.AreEqual(Prefix.y, prfx);
         }
 
+        [TestMethod]
+        public void kmEquals1000m()
+        {
+            var m = new Unit(1000, BaseUnit.m);
+            var km = new Unit(1, Prefix.k, BaseUnit.m);
+            Assert.IsTrue(m.Equals(km));
+        }
     }
 }

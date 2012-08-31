@@ -33,7 +33,7 @@ namespace MeasurementUnits
             set
             {
                 int pvalue = (value - _prefix) * _power;
-                var s = Units.OrderBy(x => Math.Abs((int)x.Prefix)).ThenBy(x => Math.Abs(x.Power)).FirstOrDefault();
+                var s = Units.OrderBy(x => Math.Abs((int)x.Prefix)).ThenBy(x => Math.Abs(x.Power)).FirstOrDefault(x=> pvalue % x.Power == 0);
                 s.Prefix += pvalue / s.Power;
                 base.Prefix = value;
             }
@@ -65,47 +65,54 @@ namespace MeasurementUnits
         #endregion
         #endregion
         #region Constructors
-        protected ComplexUnit()
-        {
-            Units = new List<Unit>();
-        }
+
         public ComplexUnit(params Unit[] units)
-            : this()
         {
-            Units = OrderUnits(units);
+            Quantity *= units.Aggregate(1.0, (x, y) => x * y.Quantity);
+            Units = OrderUnits(units.Where(x => x.Power != 0));
             foreach (var unit in Units)
             {
                 unit.PropertyChanged += unit_PropertyChanged;
+                unit.Quantity = 1;
             }
         }
-        protected ComplexUnit(int power10, params Unit[] units)
+        public ComplexUnit(double quantity, params Unit[] units)
             : this(units)
         {
-            Power10 = power10;
+            Quantity *= quantity;
         }
+
         protected ComplexUnit(string derivedUnit, params Unit[] units)
             : this(units)
         {
             DerivedUnit = derivedUnit;
         }
-        protected ComplexUnit(string derivedUnit, int power, params Unit[] units)
+        protected ComplexUnit(double quantity, string derivedUnit, params Unit[] units)
+            : this(quantity, units)
+        {
+            DerivedUnit = derivedUnit;
+        }
+        protected ComplexUnit(Prefix prefix, string derivedUnit, int power, params Unit[] units)
             : this(derivedUnit, units)
         {
+            _prefix = prefix;
             _power = power;
         }
-        protected ComplexUnit(string derivedUnit, Prefix prefix, int power, params Unit[] units)
-            : this(derivedUnit, power, units)
+        protected ComplexUnit(double quantity, Prefix prefix, string derivedUnit, int power, params Unit[] units)
+            : this(quantity, derivedUnit, units)
         {
             _prefix = prefix;
+            _power = power;
         }
+
         #endregion
         #region Methods
         public static Unit Multiply(params Unit[] units)
         {
+            var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
             var groups = units.SelectMany(x => x).GroupBy(x => x.BaseUnit);
-            var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y));
-            int power10 = multiplied.Sum(x => x.Power10);
-            return new ComplexUnit(power10, multiplied.Where(x=>x.Power != 0).ToArray());
+            var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y)).ToArray();
+            return new ComplexUnit(quantity, multiplied);
         }
 
         private static IEnumerable<Unit> OrderUnits(IEnumerable<Unit> units)
@@ -123,7 +130,6 @@ namespace MeasurementUnits
         {
             int i = (int)_prefix + (int)sender;
             Prefix newPrefix = Unit.FindClosestPrefix(i);
-            Power10 += (int)newPrefix - i;
             _prefix = newPrefix;
         }
 
@@ -131,12 +137,15 @@ namespace MeasurementUnits
         {
             if (DerivedUnit == null)
             {
-                return new ComplexUnit(Units.Select(x => x.Pow(power)).ToArray());
+                var unit = new ComplexUnit(Units.Select(x => x.Pow(power)).ToArray());
+                unit.Quantity = Math.Pow(Quantity, power);
+                return unit;
             }
             else
             {
-                var unit = new ComplexUnit(DerivedUnit, Prefix, Power, Units.ToArray());
+                var unit = new ComplexUnit(Prefix, DerivedUnit, Power, Units.ToArray());
                 unit.Power *= power;
+                unit.Quantity = Math.Pow(Quantity, power);
                 return unit;
             }
         }
@@ -148,7 +157,7 @@ namespace MeasurementUnits
                 var units = new List<Unit>();
                 ComplexUnit d = null;
                 ComplexUnit r = this;
-                while (r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
+                while (r.Units.Any() && r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
                 {
                     units.Add(d);
                 }
@@ -156,28 +165,14 @@ namespace MeasurementUnits
                 {
                     units.AddRange(r.SelectMany(x => x));
                 }
+                Quantity = d.Quantity;
                 Units =  OrderUnits(units);
-                this.Power10 += r.Power10;
             }
         }
 
-        internal bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
+        private bool FindDerivedUnitWithSmallestRemain(ref ComplexUnit derived, ref ComplexUnit remain)
         {
-            var dict = new ConcurrentDictionary<ComplexUnit, ComplexUnit>();
-            Parallel.ForEach(DerivedUnits, derivedUnit =>
-            {
-                int factor = 0;
-                var r = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
-                if (factor != 0)
-                {
-                    var remainPower = r.Power10 * factor;
-                    var testDerived = (this / r);
-                    var prfx = Unit.FindClosestPrefix(remainPower);
-                    ComplexUnit d = new ComplexUnit(derivedUnit.DerivedUnit, prfx, factor, testDerived);
-                    r.Power10 = remainPower - (int)d.Prefix;
-                    dict.AddOrUpdate(d, r, (x, y) => y);
-                }
-            });
+            var dict = FindPossibleDerivedUnits();
             if (dict.Any())
             {
                 var optimal = dict.OrderBy(x => x.Value.Count()).First();          
@@ -186,6 +181,25 @@ namespace MeasurementUnits
                 return true;
             }
             return false;
+        }
+
+        private IDictionary<ComplexUnit,ComplexUnit> FindPossibleDerivedUnits()
+        {
+            var dict = new ConcurrentDictionary<ComplexUnit, ComplexUnit>();
+            Parallel.ForEach(DerivedUnits, derivedUnit =>
+            {
+                int factor = 0;
+                var remain = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
+                if (factor != 0)
+                {      
+                    var pow10 = Unit.Power10(remain.Quantity);
+                    var prfx = Unit.FindClosestPrefix(pow10 / factor);
+                    ComplexUnit d = new ComplexUnit(prfx, derivedUnit.DerivedUnit, factor, GetBySymbol(derivedUnit.DerivedUnit));
+                    d.Quantity = remain.Quantity / Math.Pow(10, (int)prfx * factor);
+                    dict.AddOrUpdate(d, remain, (x, y) => y);
+                }
+            });
+            return dict;
         }
 
         public override Unit HasFactor(Unit unit, ref int factor)
@@ -246,6 +260,7 @@ namespace MeasurementUnits
             format = format.ToLower();
             bool fancy = !format.Contains("c");
             bool negativeExponent = !format.Contains("d");
+            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; 
             if (DerivedUnit == null)
             {
                 if (Units.Count() == 0)
@@ -254,7 +269,7 @@ namespace MeasurementUnits
                 }
                 StringBuilder name = new StringBuilder();
                 string multiplier = fancy ? Str.dot : "*";
-                string f = fancy ? "" : "c";
+                string f = fancy ? "" : "c"; f += "i";
                 var group = Units.GroupBy(x => Math.Sign(x.Power));
                 foreach (var unit in group.ElementAt(0))
                 {
@@ -279,11 +294,11 @@ namespace MeasurementUnits
                         }
                     }
                 }
-                return name.Remove(name.Length - 1, 1).ToString();
+                return quantity + name.Remove(name.Length - 1, 1).ToString();
             }
             else
             {
-                return Str.UnitToString(Prefix, DerivedUnit, Power, fancy);
+                return quantity + Str.UnitToString(Prefix, DerivedUnit, Power, fancy);
             }
         }
 
@@ -300,6 +315,7 @@ namespace MeasurementUnits
             }
             return false;
         }
+
         #endregion
     }
 }
