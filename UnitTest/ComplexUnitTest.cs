@@ -31,12 +31,12 @@ namespace UnitTest
         [TestMethod]
         public void MultiplicationOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1m" + Str.dot + "kg" + Str.dot + "s" + Str.SS(-1), (N * S).ToString());
+            Assert.AreEqual("1m" + Stringifier.dot + "kg" + Stringifier.dot + "s" + Stringifier.SS(-1), (N * S).ToString());
         }
         [TestMethod]
         public void DivisionOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1N" + Str.dot + "s" + Str.SS(-1), (N / S).ToString());
+            Assert.AreEqual("1N" + Stringifier.dot + "s" + Stringifier.SS(-1), (N / S).ToString());
         }
 
         [TestMethod]
@@ -44,7 +44,7 @@ namespace UnitTest
         {
             var u = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -1));
             var u1 = N / u;
-            Assert.AreEqual("1s" + Str.SS(-1), u1.ToString());
+            Assert.AreEqual("1s" + Stringifier.SS(-1), u1.ToString());
         }
 
         [TestMethod]
@@ -88,7 +88,7 @@ namespace UnitTest
         public void MultiplyDerivedUnits()
         {
             ComplexUnit c = N * N as ComplexUnit;
-            Assert.AreEqual("1N" + Str.SS(2), c.ToString());
+            Assert.AreEqual("1N" + Stringifier.SS(2), c.ToString());
         }
 
         [TestMethod]
@@ -97,14 +97,14 @@ namespace UnitTest
             var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             var n = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
             var c = n * kn;
-            Assert.AreEqual("10daN" + Str.SS(2), c.ToString());
+            Assert.AreEqual("10daN" + Stringifier.SS(2), c.ToString());
         }
 
         [TestMethod]
         public void ComplexDerivedUnit()
         {
             ComplexUnit c = (ComplexUnit)(N / S);
-            Assert.AreEqual("1N" + Str.dot + "s" + Str.SS(-1), c.ToString());
+            Assert.AreEqual("1N" + Stringifier.dot + "s" + Stringifier.SS(-1), c.ToString());
         }
 
         [TestMethod]

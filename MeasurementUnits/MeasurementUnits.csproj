@@ -39,9 +39,10 @@
     <Compile Include="GrandmothersAndFrogsException.cs" />
     <Compile Include="Prefix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Str.cs" />
+    <Compile Include="Stringifier.cs" />
     <Compile Include="Unit.cs" />
     <Compile Include="UnitParser.cs" />
+    <Compile Include="Util.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

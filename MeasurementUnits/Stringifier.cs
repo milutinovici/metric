@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MeasurementUnits
 {
-    public class Str
+    public class Stringifier
     {
         private static readonly string[] SuperscriptDigits = new string[] { "\u2070", "\u00b9", "\u00b2", "\u00b3", "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079" };
         public static readonly string dot = "\u00B7";

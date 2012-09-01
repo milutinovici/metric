@@ -40,7 +40,7 @@ namespace MeasurementUnits
         }
         public string DerivedUnit { get; private set; }
         #region Derived Units
-        private static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
+        internal static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
         {
             new ComplexUnit("Ω", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)),
             new ComplexUnit("V", new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)),
@@ -82,23 +82,23 @@ namespace MeasurementUnits
             Quantity *= quantity;
         }
 
-        protected ComplexUnit(string derivedUnit, params Unit[] units)
+        internal ComplexUnit(string derivedUnit, params Unit[] units)
             : this(units)
         {
             DerivedUnit = derivedUnit;
         }
-        protected ComplexUnit(double quantity, string derivedUnit, params Unit[] units)
+        internal ComplexUnit(double quantity, string derivedUnit, params Unit[] units)
             : this(quantity, units)
         {
             DerivedUnit = derivedUnit;
         }
-        protected ComplexUnit(Prefix prefix, string derivedUnit, int power, params Unit[] units)
+        internal ComplexUnit(Prefix prefix, string derivedUnit, int power, params Unit[] units)
             : this(derivedUnit, units)
         {
             _prefix = prefix;
             _power = power;
         }
-        protected ComplexUnit(double quantity, Prefix prefix, string derivedUnit, int power, params Unit[] units)
+        internal ComplexUnit(double quantity, Prefix prefix, string derivedUnit, int power, params Unit[] units)
             : this(quantity, derivedUnit, units)
         {
             _prefix = prefix;
@@ -120,16 +120,12 @@ namespace MeasurementUnits
             return units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit);
         }
 
-        public static ComplexUnit GetBySymbol(string symbol)
-        {
-            var derived = DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
-            return new ComplexUnit(symbol, derived);
-        }
+        
 
         private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             int i = (int)_prefix + (int)sender;
-            Prefix newPrefix = Unit.FindClosestPrefix(i);
+            Prefix newPrefix = PrefixHelpers.FindClosestPrefix(i);
             _prefix = newPrefix;
         }
 
@@ -192,8 +188,8 @@ namespace MeasurementUnits
                 var remain = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
                 if (factor != 0)
                 {      
-                    var pow10 = Unit.Power10(remain.Quantity);
-                    var prfx = Unit.FindClosestPrefix(pow10 / factor);
+                    var pow10 = PrefixHelpers.Power10(remain.Quantity);
+                    var prfx = PrefixHelpers.FindClosestPrefix(pow10 / factor);
                     ComplexUnit d = new ComplexUnit(prfx, derivedUnit.DerivedUnit, factor, GetBySymbol(derivedUnit.DerivedUnit));
                     d.Quantity = remain.Quantity / Math.Pow(10, (int)prfx * factor);
                     dict.AddOrUpdate(d, remain, (x, y) => y);
@@ -270,7 +266,7 @@ namespace MeasurementUnits
                     return "";
                 }
                 StringBuilder name = new StringBuilder();
-                string multiplier = fancy ? Str.dot : "*";
+                string multiplier = fancy ? Stringifier.dot : "*";
                 string f = fancy ? "" : "c"; f += "i";
                 var group = Units.GroupBy(x => Math.Sign(x.Power));
                 foreach (var unit in group.ElementAt(0))
@@ -300,7 +296,7 @@ namespace MeasurementUnits
             }
             else
             {
-                return quantity + Str.UnitToString(Prefix, DerivedUnit, Power, fancy);
+                return quantity + Stringifier.UnitToString(Prefix, DerivedUnit, Power, fancy);
             }
         }
 

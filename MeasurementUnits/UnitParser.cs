@@ -26,7 +26,7 @@ namespace MeasurementUnits
         private static Unit Polynome(string s, bool numerator)
         {
             char dot;
-            char.TryParse(Str.dot, out dot);
+            char.TryParse(Stringifier.dot, out dot);
             var sUnits = s.Split('*', dot);
             List<Unit> units = new List<Unit>();
             foreach (string singleUnit in sUnits)
@@ -58,18 +58,10 @@ namespace MeasurementUnits
         private static Unit LinearUnit(string linearUnit)
         {
             Unit u = null;
-            BaseUnit bu;
-            bool success = false;
             string test = linearUnit;
             for (int i = linearUnit.Length - 1; i >= 0; i--)
             {
                 test = linearUnit.Substring(i);
-                success = Enum.TryParse<BaseUnit>(test, out bu);
-                if (success)
-                {
-                    u = new Unit(bu);
-                    break;
-                }
                 try
                 {
                     u = ComplexUnit.GetBySymbol(test);

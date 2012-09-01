@@ -39,7 +39,7 @@ namespace UnitTest
         [TestMethod]
         public void ToStringWithPrefixAndPower()
         {
-            Assert.AreEqual("1kg" + Str.SS(2), Kg.Pow(2).ToString());
+            Assert.AreEqual("1kg" + Stringifier.SS(2), Kg.Pow(2).ToString());
         }
 
         [TestMethod]
@@ -57,13 +57,13 @@ namespace UnitTest
         [TestMethod]
         public void Powerment()
         {
-            Assert.AreEqual("1m" + Str.SS(2), M.Pow(2).ToString());
+            Assert.AreEqual("1m" + Stringifier.SS(2), M.Pow(2).ToString());
         }
 
         [TestMethod]
         public void SelfMultiplication()
         {
-            Assert.AreEqual("1m" + Str.SS(2), (M * M).ToString());
+            Assert.AreEqual("1m" + Stringifier.SS(2), (M * M).ToString());
         }
 
         [TestMethod]
@@ -75,13 +75,13 @@ namespace UnitTest
         [TestMethod]
         public void GMultiplication()
         {
-            Assert.AreEqual("1m" + Str.dot + "s", (M * S).ToString());
+            Assert.AreEqual("1m" + Stringifier.dot + "s", (M * S).ToString());
         }
 
         [TestMethod]
         public void FindClosestPrefix()
         {
-            var prfx = Unit.FindClosestPrefix(-59);
+            var prfx = PrefixHelpers.FindClosestPrefix(-59);
             Assert.AreEqual(Prefix.y, prfx);
         }
 

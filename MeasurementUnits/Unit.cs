@@ -16,7 +16,7 @@ namespace MeasurementUnits
         internal event PropertyChangedEventHandler PropertyChanged;
         protected int _power;
         protected Prefix _prefix;
-        public double Quantity { get; set; }
+        public double Quantity { get; internal set; }
         public virtual Prefix Prefix
         {
             get { return _prefix; }
@@ -34,7 +34,7 @@ namespace MeasurementUnits
             }
         }
         public virtual int Power { get { return _power; } set { _power = value; } }
-        public BaseUnit BaseUnit { get; set; }
+        public BaseUnit BaseUnit { get; private set; }
         #endregion
         #region Constructors
         protected Unit()
@@ -69,8 +69,8 @@ namespace MeasurementUnits
         {
             if (u1.IsAddable(u2))
             {
-                var averagePrefix = AveragePrefix(u1.Prefix, u2.Prefix);
-                var quantity = u1.Quantity * Math.Pow(10, u1.DeterminePower10(averagePrefix)) + u2.Quantity * Math.Pow(10, u2.DeterminePower10(averagePrefix));
+                var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
+                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) + u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
                 var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power); 
                 return newUnit;
             }
@@ -83,8 +83,8 @@ namespace MeasurementUnits
         {
             if (u1.IsAddable(u2))
             {
-                var averagePrefix = AveragePrefix(u1.Prefix, u2.Prefix);
-                var quantity = u1.Quantity * Math.Pow(10, u1.DeterminePower10(averagePrefix)) - u2.Quantity * Math.Pow(10, u2.DeterminePower10(averagePrefix));
+                var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
+                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) - u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
                 var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power);
                 return newUnit;
             }
@@ -97,8 +97,8 @@ namespace MeasurementUnits
         {
             if (u1.BaseUnit == u2.BaseUnit && u1.BaseUnit != 0)
             {
-                var averagePrefix = AveragePrefix(u1.Prefix, u2.Prefix);
-                var power10 = u1.DeterminePower10(averagePrefix) + u2.DeterminePower10(averagePrefix);
+                var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
+                var power10 = u1.Power10Difference(averagePrefix) + u2.Power10Difference(averagePrefix);
                 var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, power10);
                 var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power + u2.Power);
 
@@ -115,33 +115,19 @@ namespace MeasurementUnits
         }
         #endregion
         #region Methods
-        internal static Prefix AveragePrefix(params Prefix[] prefixes)
+        public static Unit GetBySymbol(string symbol)
         {
-            var average = prefixes.Average(x => (int)x);
-            var averagePrefix = average != 0 ? Enum.GetValues(typeof(Prefix)).Cast<Prefix>().First(x => (int)x >= average) : 0;
-            return averagePrefix;
-        }
-
-        internal static Prefix FindClosestPrefix(int powerOfTen)
-        {
-            int absolutePower = Math.Abs(powerOfTen);
-            Prefix prefix;
-            if (absolutePower < 25)
+            BaseUnit bu;
+            bool success = Enum.TryParse<BaseUnit>(symbol, out bu);
+            if (success)
             {
-                if (absolutePower % 3 == 0 || absolutePower < 3)
-                {
-                    prefix = (Prefix)powerOfTen;
-                }
-                else
-                {
-                    prefix = Enum.GetValues(typeof(Prefix)).Cast<Prefix>().Where(x => (int)x <= powerOfTen).Max();
-                }
+                return new Unit(bu);
             }
             else
             {
-                prefix = Math.Sign(powerOfTen) == 1 ? Prefix.Y : Prefix.y;
+                var derived = ComplexUnit.DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
+                return new ComplexUnit(symbol, derived);
             }
-            return prefix;
         }
 
         public static Unit Parse(string s)
@@ -169,13 +155,11 @@ namespace MeasurementUnits
             }
         }
 
-        public virtual bool IsAddable(Unit u)
+        public virtual Unit Pow(int power)
         {
-            if (Power == u.Power && BaseUnit == u.BaseUnit && u is Unit)
-            {
-                return true;
-            }
-            return false;
+            var quantity = Math.Pow(Quantity, power);
+            var powered = new Unit(quantity, Prefix, BaseUnit, Power * power);
+            return powered;
         }
 
         public virtual Unit HasFactor(Unit unit, ref int factor)
@@ -188,6 +172,23 @@ namespace MeasurementUnits
             return this;
         }
 
+        internal virtual int Power10Difference(Prefix prefix)
+        {
+            return Power * ((int)Prefix - (int)prefix);
+        }
+
+        protected void Normalize()
+        {
+            var power10 = PrefixHelpers.Power10(Quantity);
+            var newPrefix = PrefixHelpers.FindClosestPrefix(power10 / Power);
+            if (newPrefix != 0)
+            {
+                Prefix = newPrefix;
+                var pow = -((int)newPrefix * Power);
+                Quantity *= Math.Pow(10, pow);
+            }
+        }
+
         public override string ToString()
         {
             return ToString("");
@@ -198,53 +199,7 @@ namespace MeasurementUnits
             format = format.ToLower();
             bool fancy = !format.Contains("c");
             string quantity = !format.Contains("i") ? Quantity.ToString() : "" ;
-            return string.Format("{0}{1}", quantity, Str.UnitToString(Prefix, BaseUnit.ToString(), Power, fancy));
-        }
-
-        internal virtual int DeterminePower10(Prefix prefix)
-        {
-            return Power * ((int)Prefix - (int)prefix);
-        }
-
-        internal static int Power10(double quantity)
-        {
-            int powerOfTen = 0;
-            if (Math.Abs(quantity) > 1)
-            {
-                while (quantity % 10 == 0)
-                {
-                    powerOfTen++;
-                    quantity /= 10;
-                }
-            }
-            else
-            {
-                while (quantity % 1 != 0)
-                {
-                    quantity *= 10;
-                    powerOfTen--;
-                }
-            }
-            return powerOfTen;
-        }
-
-        protected void Normalize()
-        {
-            var power10 = Unit.Power10(Quantity);
-            var newPrefix = Unit.FindClosestPrefix(power10 / Power);
-            if (newPrefix != 0)
-            {
-                Prefix = newPrefix;
-                var pow = -((int)newPrefix * Power);
-                Quantity *= Math.Pow(10, pow);
-            }
-        }
-
-        public virtual Unit Pow(int power)
-        {
-            var quantity = Math.Pow(Quantity, power);
-            var powered = new Unit(quantity, Prefix, BaseUnit, Power * power);
-            return powered;
+            return string.Format("{0}{1}", quantity, Stringifier.UnitToString(Prefix, BaseUnit.ToString(), Power, fancy));
         }
 
         public virtual IEnumerator<Unit> GetEnumerator()
@@ -255,6 +210,15 @@ namespace MeasurementUnits
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public virtual bool IsAddable(Unit u)
+        {
+            if (Power == u.Power && BaseUnit == u.BaseUnit && u is Unit)
+            {
+                return true;
+            }
+            return false;
         }
 
         public override bool Equals(object obj)
@@ -272,6 +236,7 @@ namespace MeasurementUnits
             }
             return false;
         }
+
         public override int GetHashCode()
         {
             return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.BaseUnit * y.Power);
