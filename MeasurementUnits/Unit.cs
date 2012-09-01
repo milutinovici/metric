@@ -23,7 +23,7 @@ namespace MeasurementUnits
             set
             {
                 var difference = (value - _prefix) * _power;
-                Quantity *= Math.Pow(10, -difference);
+                //Quantity *= Math.Pow(10, -difference);
                 if (PropertyChanged != null)
                 {
                     PropertyChanged(difference, new PropertyChangedEventArgs("Prefix"));
@@ -126,7 +126,7 @@ namespace MeasurementUnits
             else
             {
                 var derived = ComplexUnit.DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
-                return new ComplexUnit(symbol, derived);
+                return new ComplexUnit(derivedUnit: symbol, units: derived);
             }
         }
 

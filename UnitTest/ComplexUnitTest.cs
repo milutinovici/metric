@@ -162,13 +162,13 @@ namespace UnitTest
             Assert.IsTrue(w.Equals(kw));
         }
 
-        [TestMethod]
-        public void kJTo1000J()
-        {
-            var kJ = Unit.Parse("1kJ");
-            kJ.Prefix = 0;
-            Assert.AreEqual("1000J", kJ.ToString());
-        }
+        //[TestMethod]
+        //public void kJTo1000J()
+        //{
+        //    var kJ = Unit.Parse("1kJ");
+        //    kJ.Prefix = 0;
+        //    Assert.AreEqual("1000J", kJ.ToString());
+        //}
     }
 }
 
