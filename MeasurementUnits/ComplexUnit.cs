@@ -4,13 +4,14 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.ObjectModel;
 
 namespace MeasurementUnits
 {
     public class ComplexUnit : Unit
     {
         #region Properties
-        public IEnumerable<Unit> Units { get; set; }
+        public IList<Unit> Units { get; set; }
         public override int Power
         {
             get
@@ -21,7 +22,7 @@ namespace MeasurementUnits
             {
                 var quotient = value / _power;
                 _power = value;
-                Units = Units.Select(x => x.Pow(quotient));
+                Units = Units.Select(x => x.Pow(quotient)).ToArray();
             }
         }
         public override Prefix Prefix
@@ -38,29 +39,28 @@ namespace MeasurementUnits
                 base.Prefix = value;
             }
         }
-        public string DerivedUnit { get; private set; }
         #region Derived Units
         internal static readonly IEnumerable<ComplexUnit> DerivedUnits = new List<ComplexUnit> 
         {
-            new ComplexUnit(derivedUnit :"Ω", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)}),
-            new ComplexUnit(derivedUnit :"V", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)}),
-            new ComplexUnit(derivedUnit :"H", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2)}),
-            new ComplexUnit(derivedUnit :"Wb", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
+            new ComplexUnit(unitName :"Ω", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)}),
+            new ComplexUnit(unitName :"V", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)}),
+            new ComplexUnit(unitName :"H", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2)}),
+            new ComplexUnit(unitName :"Wb", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
 
-            new ComplexUnit(derivedUnit :"F", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 4), new Unit(BaseUnit.A, 2)}),
-            new ComplexUnit(derivedUnit :"S", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 3), new Unit(BaseUnit.A, 2)}),
+            new ComplexUnit(unitName :"F", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 4), new Unit(BaseUnit.A, 2)}),
+            new ComplexUnit(unitName :"S", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 3), new Unit(BaseUnit.A, 2)}),
 
-            new ComplexUnit(derivedUnit :"W", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)}),
-            new ComplexUnit(derivedUnit :"J", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
-            new ComplexUnit(derivedUnit :"N", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)}),
+            new ComplexUnit(unitName :"W", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)}),
+            new ComplexUnit(unitName :"J", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
+            new ComplexUnit(unitName :"N", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)}),
             
-            new ComplexUnit(derivedUnit :"Pa", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, -1), new Unit(BaseUnit.s, -2)}),
-            new ComplexUnit(derivedUnit :"T", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
+            new ComplexUnit(unitName :"Pa", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, -1), new Unit(BaseUnit.s, -2)}),
+            new ComplexUnit(unitName :"T", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
             
-            new ComplexUnit(derivedUnit : "C", units : new[] { new Unit(BaseUnit.s), new Unit(BaseUnit.A)}),
-            new ComplexUnit(derivedUnit :"Gy", units : new[] { new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
-            new ComplexUnit(derivedUnit :"lx",units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
-            new ComplexUnit(derivedUnit :"kat",units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
+            new ComplexUnit(unitName : "C", units : new[] { new Unit(BaseUnit.s), new Unit(BaseUnit.A)}),
+            new ComplexUnit(unitName :"Gy", units : new[] { new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
+            new ComplexUnit(unitName :"lx",units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
+            new ComplexUnit(unitName :"kat",units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
         };
         #endregion
         #endregion
@@ -82,10 +82,10 @@ namespace MeasurementUnits
             Quantity *= quantity;
         }
 
-        internal ComplexUnit(double quantity = 1, Prefix prefix = 0, string derivedUnit = null, int power = 1, params Unit[] units)
+        internal ComplexUnit(double quantity = 1, Prefix prefix = 0, string unitName = null, int power = 1, params Unit[] units)
             : this(quantity, units)
         {
-            DerivedUnit = derivedUnit;
+            UnitName = unitName;
             _prefix = prefix;
             _power = power;
         }
@@ -95,14 +95,14 @@ namespace MeasurementUnits
         public static Unit Multiply(params Unit[] units)
         {
             var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
-            var groups = units.SelectMany(x => x).GroupBy(x => x.BaseUnit);
+            var groups = units.SelectMany(x => x).GroupBy(x => x.UnitName);
             var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y)).ToArray();
             return new ComplexUnit(quantity, multiplied);
         }
 
-        private static IEnumerable<Unit> OrderUnits(IEnumerable<Unit> units)
+        private static IList<Unit> OrderUnits(IEnumerable<Unit> units)
         {
-            return units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.BaseUnit);
+            return /*new ReadOnlyCollection<Unit>(*/units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray()/*)*/;
         }
 
         private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
@@ -117,13 +117,13 @@ namespace MeasurementUnits
             var quantity = Math.Pow(Quantity, power);
             var newPower = Power * power;
             var units = Units.Select(x => x.Pow(power)).ToArray();
-            var unit = new ComplexUnit(quantity, Prefix, DerivedUnit, newPower, units);
+            var unit = new ComplexUnit(quantity, Prefix, UnitName, newPower, units);
             return unit;
         }
 
         public void FindDerivedUnits()
         {
-            if (DerivedUnit == null || DerivedUnit == "")
+            if (string.IsNullOrEmpty(UnitName))
             {
                 var units = new List<Unit>();
                 ComplexUnit d = null;
@@ -132,12 +132,12 @@ namespace MeasurementUnits
                 {
                     units.Add(d);
                 }
-                if (r.Units.Count() != 0 || r.BaseUnit != 0)
+                if (r.Units.Count() != 0 || !string.IsNullOrEmpty(r.UnitName))
                 {
                     units.AddRange(r.SelectMany(x => x));
                 }
                 Quantity = d != null ? d.Quantity : r.Quantity;
-                Units =  OrderUnits(units);
+                Units = OrderUnits(units);
             }
         }
 
@@ -157,7 +157,7 @@ namespace MeasurementUnits
         private IDictionary<ComplexUnit,ComplexUnit> FindPossibleDerivedUnits()
         {
             var dict = new ConcurrentDictionary<ComplexUnit, ComplexUnit>();
-            Parallel.ForEach(DerivedUnits, derivedUnit =>
+            DerivedUnits.AsParallel().ForAll(derivedUnit =>
             {
                 int factor = 0;
                 var remain = this.HasFactor(derivedUnit, ref factor) as ComplexUnit;
@@ -165,8 +165,9 @@ namespace MeasurementUnits
                 {      
                     var pow10 = PrefixHelpers.Power10(remain.Quantity);
                     var prfx = PrefixHelpers.FindClosestPrefix(pow10 / factor);
-                    ComplexUnit d = new ComplexUnit(1, prfx, derivedUnit.DerivedUnit, factor, GetBySymbol(derivedUnit.DerivedUnit));
-                    d.Quantity = remain.Quantity / Math.Pow(10, (int)prfx * factor);
+                    var units = derivedUnit.Units.SelectMany(x=> x.Pow(1)).ToArray();
+                    var quantity = remain.Quantity / Math.Pow(10, (int)prfx * factor);
+                    ComplexUnit d = new ComplexUnit(quantity, prfx, derivedUnit.UnitName, factor, units);
                     dict.AddOrUpdate(d, remain, (x, y) => y);
                 }
             });
@@ -191,13 +192,13 @@ namespace MeasurementUnits
             do
             {
                 var quotient = remain / possibleFactor;
-                var quotients = this.SelectMany(x => x).Concat(quotient.SelectMany(x => x)).GroupBy(x => x.BaseUnit);
-                var factors = this.SelectMany(x => x).Concat(possibleFactor.SelectMany(x => x)).GroupBy(x => x.BaseUnit);
+                var quotients = this.SelectMany(x => x).Concat(quotient.SelectMany(x => x)).GroupBy(x => x.UnitName);
+                var factors = this.SelectMany(x => x).Concat(possibleFactor.SelectMany(x => x)).GroupBy(x => x.UnitName);
                 
                 var qgroup = quotients.Where(group => group.Count() > 1);
                 var fgroup = factors.Where(group => group.Count() > 1);
                 var rgroup = quotients.Where(group => group.Count() < 2).SelectMany(x => x).Concat(factors.Where(group => group.Count() < 2).SelectMany(x => x))
-                    .GroupBy(x => x.BaseUnit).Where(group => group.Count() > 1);
+                    .GroupBy(x => x.UnitName).Where(group => group.Count() > 1);
 
                 bool qTest = !qgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
                 bool fTest = !fgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
@@ -211,6 +212,20 @@ namespace MeasurementUnits
             }
             while (repeat);
             return remain;
+        }
+
+        public override bool IsAddable(Unit u)
+        {
+            var u1 = u as ComplexUnit;
+            if (u1 != null && Power == u.Power)
+            {
+                var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                var b = u1.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                bool addable = !a.Except(b).Any();
+                if (addable)
+                    return true;
+            }
+            return false;
         }
 
         public override IEnumerator<Unit> GetEnumerator()
@@ -229,64 +244,21 @@ namespace MeasurementUnits
         public override string ToString(string format)
         {
             format = format.ToLower();
-            bool findDerived = DerivedUnit == null && !format.Contains("b"); // base units only
+            bool findDerived = string.IsNullOrEmpty(UnitName) && !format.Contains("b"); // base units only
             if (findDerived) FindDerivedUnits();
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
             string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // ignore quantity
-            if (DerivedUnit == null)
+            string unitString = "";
+            if (string.IsNullOrEmpty(UnitName) && Units.Count() > 0)
             {
-                if (Units.Count() == 0)
-                {
-                    return "";
-                }
-                StringBuilder name = new StringBuilder();
-                string multiplier = fancy ? Stringifier.dot : "*";
-                string f = fancy ? "" : "c"; f += "i";
-                var group = Units.GroupBy(x => Math.Sign(x.Power));
-                foreach (var unit in group.ElementAt(0))
-                {
-                    name.Append(unit.ToString(f)).Append(multiplier);
-                }
-                if (group.Count() > 1)
-                {
-                    if (useDivisor)
-                    {
-                        foreach (var unit in group.ElementAt(1))
-                        {
-                            name.Append(unit.ToString(f)).Append(multiplier);
-                        }
-                    }
-                    else
-                    {
-                        name.Remove(name.Length - 1, 1);
-                        name.Append("/");
-                        foreach (var unit in group.ElementAt(1))
-                        {
-                            name.Append(unit.Pow(-1).ToString(f)).Append(multiplier);
-                        }
-                    }
-                }
-                return quantity + name.Remove(name.Length - 1, 1).ToString();
+                unitString = Stringifier.MultipleUnitsToString(Units, fancy, useDivisor);
             }
-            else
+            else if (!string.IsNullOrEmpty(UnitName))
             {
-                return quantity + Stringifier.UnitToString(Prefix, DerivedUnit, Power, fancy);
+                unitString = Stringifier.UnitToString(Prefix, UnitName, Power, fancy);
             }
-        }
-
-        public override bool IsAddable(Unit u)
-        {
-            var u1 = u as ComplexUnit;
-            if (u1 != null && Power == u.Power)
-            {
-                var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.BaseUnit });
-                var b = u1.Units.SelectMany(x => x).Select(x => new { x.Power, x.BaseUnit });
-                bool addable = !a.Except(b).Any();
-                if (addable)
-                    return true;
-            }
-            return false;
+            return string.Format("{0}{1}", quantity, unitString);
         }
 
         #endregion

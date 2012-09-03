@@ -33,8 +33,10 @@ namespace MeasurementUnits
 
             }
         }
+        private BaseUnit _baseUnit;
+        private BaseUnit BaseUnit { get { return _baseUnit; } set { _baseUnit = value; UnitName = value.ToString(); } }
+        public string UnitName { get; protected set; }
         public virtual int Power { get { return _power; } set { _power = value; } }
-        public BaseUnit BaseUnit { get; private set; }
         #endregion
         #region Constructors
         protected Unit()
@@ -125,8 +127,8 @@ namespace MeasurementUnits
             }
             else
             {
-                var derived = ComplexUnit.DerivedUnits.First(x => x.DerivedUnit == symbol).SelectMany(x => x.Pow(1)).ToArray();
-                return new ComplexUnit(derivedUnit: symbol, units: derived);
+                var derived = ComplexUnit.DerivedUnits.First(x => x.UnitName == symbol).SelectMany(x => x.Pow(1)).ToArray();
+                return new ComplexUnit(unitName: symbol, units: derived);
             }
         }
 

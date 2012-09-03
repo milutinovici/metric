@@ -158,7 +158,7 @@ namespace UnitTest
         [TestMethod]
         public void ParseMixed()
         {
-            string s = "12MT^-2*kmol^-1";
+            string s = "12kmol^-1*MT^-2";
             var u = Unit.Parse(s);
             Assert.AreEqual(s, u.ToString("c"));
         }

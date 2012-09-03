@@ -33,6 +33,39 @@ namespace MeasurementUnits
             else return "";
         }
 
+        internal static string MultipleUnitsToString(IEnumerable<Unit> units, bool fancy, bool useDivisor)
+        {
+            StringBuilder name = new StringBuilder();
+            string multiplier = fancy ? Stringifier.dot : "*";
+            string f = fancy ? "" : "c"; 
+            f += "i";
+            var group = units.GroupBy(x => Math.Sign(x.Power));
+            foreach (var unit in group.ElementAt(0))
+            {
+                name.Append(unit.ToString(f)).Append(multiplier);
+            }
+            if (group.Count() > 1)
+            {
+                if (useDivisor)
+                {
+                    foreach (var unit in group.ElementAt(1))
+                    {
+                        name.Append(unit.ToString(f)).Append(multiplier);
+                    }
+                }
+                else
+                {
+                    name.Remove(name.Length - 1, 1);
+                    name.Append("/");
+                    foreach (var unit in group.ElementAt(1))
+                    {
+                        name.Append(unit.Pow(-1).ToString(f)).Append(multiplier);
+                    }
+                }
+            }
+            return name.Remove(name.Length - 1, 1).ToString();
+        }
+
         public static string SS(int power)
         {
             StringBuilder sb = new StringBuilder();
