@@ -119,7 +119,7 @@ namespace UnitTest
         public void ParseDerivedComplexUnitPoweredPrefixed()
         {
             string s = "1K*mV^-2";
-            var u = Unit.Parse(s) as ComplexUnit;
+            var u = Unit.Parse(s);
             Assert.AreEqual(s, u.ToString("c"));
         }
 

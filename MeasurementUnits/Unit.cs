@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -10,37 +11,80 @@ namespace MeasurementUnits
 {
     public enum BaseUnit { m = 2, g = 3, s = 5, A = 7, K = 11, cd = 13, mol = 17 }
 
-    public class Unit : IEnumerable<Unit>
+    public sealed class Unit : IEnumerable<Unit>
     {
         #region Fields & Properties
         internal event PropertyChangedEventHandler PropertyChanged;
-        protected int _power;
-        protected Prefix _prefix;
+        private int _power;
+        public int Power
+        {
+            get
+            {
+                return _power;
+            }
+            set
+            {
+                var quotient = value / _power;
+                _power = value;
+                Units = Units.Select(x => x.Pow(quotient)).ToArray();
+            }
+        }
+        private Prefix _prefix;
         public double Quantity { get; internal set; }
-        public virtual Prefix Prefix
+        public Prefix Prefix
         {
             get { return _prefix; }
             set
             {
-                var difference = (value - _prefix) * _power;
+                int difference = (value - _prefix) * _power;
+                if (Units.Count > 0)
+                {
+                    var s = Units.OrderBy(x => Math.Abs(difference % x.Power)).ThenBy(x => Math.Abs((int)x.Prefix)).ThenBy(x => Math.Abs(x.Power)).First();
+                    s.Prefix += difference / s.Power;
+                }
                 //Quantity *= Math.Pow(10, -difference);
                 if (PropertyChanged != null)
                 {
                     PropertyChanged(difference, new PropertyChangedEventArgs("Prefix"));
                 }
-                
                 _prefix = value;
 
             }
         }
         private BaseUnit _baseUnit;
         private BaseUnit BaseUnit { get { return _baseUnit; } set { _baseUnit = value; UnitName = value.ToString(); } }
-        public string UnitName { get; protected set; }
-        public virtual int Power { get { return _power; } set { _power = value; } }
+        public string UnitName { get; private set; }
+        public IList<Unit> Units { get; set; }
+
+        #region Derived Units
+        private static readonly IEnumerable<Unit> DerivedUnits = new List<Unit> 
+        {
+            new Unit(unitName :"Ω", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -2)}),
+            new Unit(unitName :"V", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3), new Unit(BaseUnit.A, -1)}),
+            new Unit(unitName :"H", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s,-2), new Unit(BaseUnit.A, -2)}),
+            new Unit(unitName :"Wb", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
+
+            new Unit(unitName :"F", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 4), new Unit(BaseUnit.A, 2)}),
+            new Unit(unitName :"S", units : new[] { new Unit(Prefix.k, BaseUnit.g, -1), new Unit(BaseUnit.m, -2), new Unit(BaseUnit.s, 3), new Unit(BaseUnit.A, 2)}),
+
+            new Unit(unitName :"W", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3)}),
+            new Unit(unitName :"J", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
+            new Unit(unitName :"N", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2)}),
+            
+            new Unit(unitName :"Pa", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, -1), new Unit(BaseUnit.s, -2)}),
+            new Unit(unitName :"T", units : new[] { new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2), new Unit(BaseUnit.A, -1)}),
+            
+            new Unit(unitName : "C", units : new[] { new Unit(BaseUnit.s), new Unit(BaseUnit.A)}),
+            new Unit(unitName :"Gy", units : new[] { new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
+            new Unit(unitName :"lx",units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
+            new Unit(unitName :"kat",units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
+        };
+        #endregion
         #endregion
         #region Constructors
-        protected Unit()
+        private Unit()
         {
+            Units = new List<Unit>();
             Quantity = 1;
             _power = 1;
         }
@@ -64,6 +108,30 @@ namespace MeasurementUnits
             : this(quantity, baseUnit, power)
         {
             this._prefix = prefix;
+        }
+        public Unit(params Unit[] units)
+            :this()
+        {
+            Quantity *= units.Aggregate(1.0, (x, y) => x * y.Quantity);
+            Units = OrderUnits(units.Where(x => x.Power != 0).Select(x => x.Pow(1)));
+            foreach (var unit in Units)
+            {
+                unit.PropertyChanged += unit_PropertyChanged;
+                unit.Quantity = 1;
+            }
+        }
+        public Unit(double quantity, params Unit[] units)
+            : this(units)
+        {
+            Quantity *= quantity;
+        }
+
+        private Unit(double quantity = 1, Prefix prefix = 0, string unitName = null, int power = 1, params Unit[] units)
+            : this(quantity, units)
+        {
+            UnitName = unitName;
+            _prefix = prefix;
+            _power = power;
         }
         #endregion
         #region Operators
@@ -108,7 +176,7 @@ namespace MeasurementUnits
             }
             else
             {
-                return ComplexUnit.Multiply(u1, u2);
+                return Unit.Multiply(u1, u2);
             }
         }
         public static Unit operator /(Unit u1, Unit u2)
@@ -117,6 +185,23 @@ namespace MeasurementUnits
         }
         #endregion
         #region Methods
+        private static IList<Unit> OrderUnits(IEnumerable<Unit> units)
+        {
+            return /*new ReadOnlyCollection<Unit>(*/units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray()/*)*/;
+        }
+        private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            int i = (int)_prefix + (int)sender;
+            Prefix newPrefix = PrefixHelpers.FindClosestPrefix(i);
+            _prefix = newPrefix;
+        }
+        public static Unit Multiply(params Unit[] units)
+        {
+            var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
+            var groups = units.SelectMany(x => x).GroupBy(x => x.UnitName);
+            var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y)).ToArray();
+            return new Unit(quantity, multiplied);
+        }
         public static Unit GetBySymbol(string symbol)
         {
             BaseUnit bu;
@@ -127,8 +212,8 @@ namespace MeasurementUnits
             }
             else
             {
-                var derived = ComplexUnit.DerivedUnits.First(x => x.UnitName == symbol).SelectMany(x => x.Pow(1)).ToArray();
-                return new ComplexUnit(unitName: symbol, units: derived);
+                var derived = Unit.DerivedUnits.First(x => x.UnitName == symbol).SelectMany(x => x.Pow(1)).ToArray();
+                return new Unit(unitName: symbol, units: derived);
             }
         }
 
@@ -157,29 +242,29 @@ namespace MeasurementUnits
             }
         }
 
-        public virtual Unit Pow(int power)
+        public Unit Pow(int power)
         {
-            var quantity = Math.Pow(Quantity, power);
-            var powered = new Unit(quantity, Prefix, BaseUnit, Power * power);
+            Unit powered;
+            double quantity = Math.Pow(Quantity, power);
+            int newPower = Power * power;
+            if (Units.Count == 0)
+            {
+                powered = new Unit(quantity, Prefix, BaseUnit, newPower);
+            }
+            else
+            {
+                var units = Units.Select(x => x.Pow(power)).ToArray();
+                powered = new Unit(quantity, Prefix, UnitName, newPower, units);
+            }
             return powered;
         }
 
-        public virtual Unit HasFactor(Unit unit, ref int factor)
-        {
-            if (unit.BaseUnit == this.BaseUnit)
-            {
-                factor = this.Power / unit.Power;
-            }
-            else factor = 0;
-            return this;
-        }
-
-        internal virtual int Power10Difference(Prefix prefix)
+        private int Power10Difference(Prefix prefix)
         {
             return Power * ((int)Prefix - (int)prefix);
         }
 
-        protected void Normalize()
+        private void Normalize()
         {
             var power10 = PrefixHelpers.Power10(Quantity);
             var newPrefix = PrefixHelpers.FindClosestPrefix(power10 / Power);
@@ -196,17 +281,39 @@ namespace MeasurementUnits
             return ToString("");
         }
 
-        public virtual string ToString(string format)
+        public string ToString(string format)
         {
             format = format.ToLower();
-            bool fancy = !format.Contains("c");
-            string quantity = !format.Contains("i") ? Quantity.ToString() : "" ;
-            return string.Format("{0}{1}", quantity, Stringifier.UnitToString(Prefix, BaseUnit.ToString(), Power, fancy));
+            bool findDerived = string.IsNullOrEmpty(UnitName) && !format.Contains("b"); // base units only
+            if (findDerived) FindDerivedUnits();
+            bool fancy = !format.Contains("c"); // common formmating 
+            bool useDivisor = !format.Contains("d"); // use '/'
+            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // ignore quantity
+            string unitString = "";
+            if (string.IsNullOrEmpty(UnitName) && Units.Count() > 0)
+            {
+                unitString = Stringifier.MultipleUnitsToString(Units, fancy, useDivisor);
+            }
+            else if (!string.IsNullOrEmpty(UnitName))
+            {
+                unitString = Stringifier.UnitToString(Prefix, UnitName, Power, fancy);
+            }
+            return string.Format("{0}{1}", quantity, unitString);
         }
 
-        public virtual IEnumerator<Unit> GetEnumerator()
+        public IEnumerator<Unit> GetEnumerator()
         {
-            yield return this;
+            if (Units.Count == 0)
+            {
+                yield return this;
+            }
+            else
+            {
+                foreach (var unit in Units)
+                {
+                    yield return unit;
+                }
+            }
         }
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
@@ -214,11 +321,20 @@ namespace MeasurementUnits
             return GetEnumerator();
         }
 
-        public virtual bool IsAddable(Unit u)
+        public bool IsAddable(Unit u)
         {
-            if (Power == u.Power && BaseUnit == u.BaseUnit && u is Unit)
+            if (Power == u.Power) 
             {
-                return true;
+                if(UnitName == u.UnitName)
+                {
+                    return true;
+                }
+                else
+                {
+                    var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                    var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                    return !a.Except(b).Any();
+                }
             }
             return false;
         }
@@ -242,6 +358,110 @@ namespace MeasurementUnits
         public override int GetHashCode()
         {
             return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.BaseUnit * y.Power);
+        }
+        #endregion
+        #region DerivedUnits
+
+        public void FindDerivedUnits()
+        {
+            if (string.IsNullOrEmpty(UnitName))
+            {
+                var units = new List<Unit>();
+                Unit d = null;
+                Unit r = this;
+                while (r.Units.Any() && r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
+                {
+                    units.Add(d);
+                }
+                if (r.Units.Count() != 0 || !string.IsNullOrEmpty(r.UnitName))
+                {
+                    units.AddRange(r.SelectMany(x => x));
+                }
+                Quantity = d != null ? d.Quantity : r.Quantity;
+                Units = OrderUnits(units);
+            }
+        }
+
+        private bool FindDerivedUnitWithSmallestRemain(ref Unit derived, ref Unit remain)
+        {
+            var dict = FindPossibleDerivedUnits();
+            if (dict.Any())
+            {
+                var optimal = dict.OrderBy(x => x.Value.Count()).First();
+                derived = optimal.Key;
+                remain = optimal.Value;
+                return true;
+            }
+            return false;
+        }
+
+        private IDictionary<Unit, Unit> FindPossibleDerivedUnits()
+        {
+            var dict = new ConcurrentDictionary<Unit, Unit>();
+            DerivedUnits.AsParallel().ForAll(derivedUnit =>
+            {
+                int factor = 0;
+                var remain = this.HasFactor(derivedUnit, ref factor);
+                if (factor != 0)
+                {
+                    var pow10 = PrefixHelpers.Power10(remain.Quantity);
+                    var prfx = PrefixHelpers.FindClosestPrefix(pow10 / factor);
+                    var units = derivedUnit.Units.SelectMany(x => x.Pow(1)).ToArray();
+                    var quantity = remain.Quantity / Math.Pow(10, (int)prfx * factor);
+                    Unit d = new Unit(quantity, prfx, derivedUnit.UnitName, factor, units);
+                    dict.AddOrUpdate(d, remain, (x, y) => y);
+                }
+            });
+            return dict;
+        }
+
+        public Unit HasFactor(Unit unit, ref int factor)
+        {
+            Unit u = new Unit();
+            if (unit.UnitName == this.UnitName)
+            {
+                factor = this.Power / unit.Power;
+            }
+            else
+            {
+                u = Factor(unit, ref factor);
+                if (factor == 0)
+                {
+                    u = Factor(unit.Pow(-1), ref factor);
+                    factor *= -1;
+                }
+            }
+            return u;
+        }
+
+        private Unit Factor(Unit possibleFactor, ref int factor)
+        {
+            var remain = this;
+            bool repeat = false;
+            Unit reciprocalFactor = possibleFactor.Pow(-1);
+            do
+            {
+                var quotient = remain * reciprocalFactor;
+                var quotients = this.SelectMany(x => x).Concat(quotient.SelectMany(x => x)).GroupBy(x => x.UnitName);
+                var factors = this.SelectMany(x => x).Concat(possibleFactor.SelectMany(x => x)).GroupBy(x => x.UnitName);
+
+                var qgroup = quotients.Where(group => group.Count() > 1);
+                var fgroup = factors.Where(group => group.Count() > 1);
+                var rgroup = quotients.Where(group => group.Count() < 2).SelectMany(x => x).Concat(factors.Where(group => group.Count() < 2).SelectMany(x => x))
+                    .GroupBy(x => x.UnitName).Where(group => group.Count() > 1);
+
+                bool qTest = !qgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
+                bool fTest = !fgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
+                bool rTest = !rgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
+                repeat = qTest && fTest && rTest;
+                if (repeat)
+                {
+                    remain = quotient;
+                    factor++;
+                }
+            }
+            while (repeat);
+            return remain;
         }
         #endregion
     }

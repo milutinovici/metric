@@ -18,7 +18,7 @@ namespace MeasurementUnits
             if (rational.Length == 2)
             {
                 Unit denominator = Polynome(rational[1], false);
-                return ComplexUnit.Multiply(numerator, denominator);
+                return Unit.Multiply(numerator, denominator);
             }
             return numerator;
         }
@@ -51,7 +51,7 @@ namespace MeasurementUnits
             }
             else
             {
-                return ComplexUnit.Multiply(units.ToArray());
+                return Unit.Multiply(units.ToArray());
             }
         }
 
@@ -64,7 +64,7 @@ namespace MeasurementUnits
                 test = linearUnit.Substring(i);
                 try
                 {
-                    u = ComplexUnit.GetBySymbol(test);
+                    u = Unit.GetBySymbol(test);
                     break;
                 }
                 catch { }

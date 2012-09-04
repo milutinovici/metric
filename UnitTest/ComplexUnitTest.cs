@@ -17,14 +17,14 @@ namespace UnitTest
 
         public ComplexUnitTest()
         {
-            N = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
+            N = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             S = new Unit(BaseUnit.s);
         }
 
         [TestMethod]
         public void IsAddableComplexWithDifferentPrefixes()
         {
-            var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
+            var kn = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             Assert.IsTrue(N.IsAddable(kn));
         }
 
@@ -42,7 +42,7 @@ namespace UnitTest
         [TestMethod]
         public void DivisionOf2ComplexUnits()
         {
-            var u = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -1));
+            var u = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -1));
             var u1 = N / u;
             Assert.AreEqual("1s" + Stringifier.SS(-1), u1.ToString());
         }
@@ -80,22 +80,22 @@ namespace UnitTest
         [TestMethod]
         public void RecognizeDerivedUnitWithPrefix()
         {
-            var kn = new ComplexUnit(1, new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
+            var kn = new Unit(1, new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             Assert.AreEqual("1kN", kn.ToString());
         }
 
         [TestMethod]
         public void MultiplyDerivedUnits()
         {
-            ComplexUnit c = N * N as ComplexUnit;
+            Unit c = N * N;
             Assert.AreEqual("1N" + Stringifier.SS(2), c.ToString());
         }
 
         [TestMethod]
         public void MultiplyDerivedUnitsWithPrefix()
         {
-            var kn = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            var n = new ComplexUnit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
+            var kn = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
+            var n = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
             var c = n * kn;
             Assert.AreEqual("10daN" + Stringifier.SS(2), c.ToString());
         }
@@ -103,14 +103,14 @@ namespace UnitTest
         [TestMethod]
         public void ComplexDerivedUnit()
         {
-            ComplexUnit c = (ComplexUnit)(N / S);
+            Unit c = (N / S);
             Assert.AreEqual("1N" + Stringifier.dot + "s" + Stringifier.SS(-1), c.ToString());
         }
 
         [TestMethod]
         public void PrefixTransferDown()
         {
-            ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
+            Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Prefix = Prefix.m;
             var u = n.Units.First();
             Assert.AreEqual(Prefix.m, n.Prefix);
@@ -119,7 +119,7 @@ namespace UnitTest
         //[TestMethod]
         //public void PrefixTransferUp()
         //{
-        //    ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
+        //    Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
         //    var t = n.ToString();
         //    n.Units.First().Prefix = Prefix.M;
         //    Assert.AreEqual(Prefix.M, n.Prefix);
@@ -128,7 +128,7 @@ namespace UnitTest
         [TestMethod]
         public void PrefixTransferUpM2()
         {
-            ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
+            Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Units.Last().Prefix = Prefix.k;
             Assert.AreEqual(Prefix.μ, n.Prefix);
         }
@@ -136,13 +136,13 @@ namespace UnitTest
         [TestMethod]
         public void PrefixTransferUpWithRounding()
         {
-            ComplexUnit n = new ComplexUnit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
+            Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n.Units.Last().Prefix = Prefix.c;
             Assert.AreEqual(Prefix.k, n.Prefix);
         }
 
         [TestMethod]
-        public void ParseDerivedComplexUnitPoweredPrefixed()
+        public void ParseDerivedUnitPoweredPrefixed()
         {
             string s = "1mV^-3";
             var u = Unit.Parse(s).Pow(-1);
@@ -152,14 +152,14 @@ namespace UnitTest
         [TestMethod]
         public void RecognizeDerivedUnitWithPrefix2()
         {
-            var u = new ComplexUnit(2, new Unit(Prefix.h, BaseUnit.g), new Unit(Prefix.M, BaseUnit.m), new Unit(BaseUnit.s, -2));
+            var u = new Unit(2, new Unit(Prefix.h, BaseUnit.g), new Unit(Prefix.M, BaseUnit.m), new Unit(BaseUnit.s, -2));
             Assert.AreEqual("200kN", u.ToString());
         }
         [TestMethod]
         public void kWEquals1000W()
         {
-            var w = new ComplexUnit(1000, new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
-            var kw = new ComplexUnit(1, new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
+            var w = new Unit(1000, new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
+            var kw = new Unit(1, new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
             Assert.IsTrue(w.Equals(kw));
         }
 
