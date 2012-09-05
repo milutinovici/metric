@@ -392,7 +392,7 @@ namespace MeasurementUnits
             {
                 var units = new List<Unit>();
                 Unit d = null;
-                Unit r = this;
+                Unit r = this.Pow(1);
                 while (r.Units.Any() && r.FindDerivedUnitWithSmallestRemain(ref d, ref r))
                 {
                     units.Add(d);
@@ -401,8 +401,12 @@ namespace MeasurementUnits
                 {
                     units.AddRange(r.SelectMany(x => x));
                 }
-                Quantity = d != null ? d.Quantity : r.Quantity;
-                Units = OrderUnits(units);
+                var lockObj = new object();
+                lock (lockObj)
+                {
+                    Quantity = d != null ? d.Quantity : r.Quantity;
+                    Units = OrderUnits(units);
+                }
             }
         }
 

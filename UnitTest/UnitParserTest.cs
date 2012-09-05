@@ -147,13 +147,13 @@ namespace UnitTest
             Assert.AreEqual(s, u.ToString("c"));
         }
 
-        //[TestMethod]
-        //public void ConvertSuperscript()
-        //{
-        //    string s = "MT" + Str.SS(2);
-        //    var normal = UnitParser.ConvertSuperscript(s);
-        //    Assert.AreEqual("MT^2", normal);
-        //}
+        [TestMethod]
+        public void ConvertSuperscript()
+        {
+            string s = "MT" + Stringifier.SS(2);
+            var normal = UnitParser.ConvertSuperscript(s);
+            Assert.AreEqual("MT^2", normal);
+        }
 
         [TestMethod]
         public void ParseMixed()

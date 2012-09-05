@@ -7,12 +7,12 @@ using System.Threading.Tasks;
 
 namespace MeasurementUnits
 {
-    public class UnitParser
+    internal class UnitParser
     {
-        public static Unit Parse(string s)
+        internal static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-            //s = ConvertSuperscript(s);
+            s = ConvertSuperscript(s);
             var rational = s.Split('/');
             Unit numerator = Polynome(rational[0], true);
             if (rational.Length == 2)
@@ -76,28 +76,38 @@ namespace MeasurementUnits
             }
             return u;
         }
-        //public static string ConvertSuperscript(string value)
-        //{
-        //    string stringFormKd = value.Normalize(NormalizationForm.FormKD);
-        //    stringFormKd = stringFormKd.Replace((char)8722, '-');
-        //    StringBuilder stringBuilder = new StringBuilder();
-        //    bool added = false;
-        //    foreach (char character in stringFormKd)
-        //    {
-        //        UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(character);
-        //        if (unicodeCategory != UnicodeCategory.NonSpacingMark)
-        //        {
-        //            if (character == '^') added = true;
-        //            if ((unicodeCategory == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
-        //            {
-        //                stringBuilder.Append('^');
-        //                added = true;
-        //            }
-        //            stringBuilder.Append(character);
-        //        }
-        //    }
+        internal static string ConvertSuperscript(string value)
+        {
+            string normalized = Normalize(value);
+            StringBuilder stringBuilder = new StringBuilder();
+            bool added = false;
+            foreach (char character in normalized)
+            {
+                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(character);
+                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                {
+                    if (character == '^') added = true;
+                    if ((unicodeCategory == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
+                    {
+                        stringBuilder.Append('^');
+                        added = true;
+                    }
+                    stringBuilder.Append(character);
+                }
+            }
 
-        //    return stringBuilder.ToString().Normalize(NormalizationForm.FormKC);
-        //}
+            return stringBuilder.ToString();
+        }
+        private static string Normalize(string s)
+        {
+            s = s.Replace(Stringifier.minus, "-");
+            s = s.Replace(Stringifier.dot, "*");
+            for (int i = 0; i < 10; i++)
+            {
+                s = s.Replace(Stringifier.SS(i), i.ToString());
+            }
+            return s;
+        }
+
     }
 }
