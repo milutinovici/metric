@@ -79,11 +79,7 @@ namespace MeasurementUnits
             :this()
         {
             this.Quantity *= units.Aggregate(1.0, (x, y) => x * y.Quantity);
-            this.Units = OrderUnits(units.Where(x => x.Power != 0).Select(x => x.Pow(1)));
-            foreach (var unit in Units)
-            {
-                unit.Quantity = 1;
-            }
+            this.Units = OrderUnits(units.Where(x => x.Power != 0).Select(x => x.DifferentQuantity(1)));
         }
         public Unit(double quantity, params Unit[] units)
             : this(units)
