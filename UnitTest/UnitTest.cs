@@ -131,5 +131,13 @@ namespace UnitTest
             var nw =  100 / w;
             Assert.AreEqual("100W^-1", nw.ToString("c"));
         }
+
+        [TestMethod]
+        public void ChooseRemainWithSmallestPower()
+        {
+            var w = Unit.GetBySymbol("W");
+            var nw = w / S;
+            Assert.AreEqual("1W/s", nw.ToString("d"));
+        }
     }
 }

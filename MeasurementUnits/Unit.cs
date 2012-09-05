@@ -21,6 +21,7 @@ namespace MeasurementUnits
         public double Quantity { get; private set; }
         public string UnitName { get; private set; }
         public IList<Unit> Units { get; private set; }
+        private bool Searched { get; set; }
         #region Derived Units
         private static readonly IEnumerable<Unit> DerivedUnits = new List<Unit> 
         {
@@ -304,7 +305,7 @@ namespace MeasurementUnits
         public string ToString(string format)
         {
             format = format.ToLower();
-            bool findDerived = string.IsNullOrEmpty(UnitName) && !format.Contains("b"); // base units only
+            bool findDerived = string.IsNullOrEmpty(UnitName) && !Searched && !format.Contains("b"); // base units only
             if (findDerived) FindDerivedUnits();
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
@@ -402,6 +403,7 @@ namespace MeasurementUnits
                 {
                     Quantity = d != null ? d.Quantity : r.Quantity;
                     Units = OrderUnits(units);
+                    Searched = true;
                 }
             }
         }
@@ -411,7 +413,7 @@ namespace MeasurementUnits
             var dict = FindPossibleDerivedUnits();
             if (dict.Any())
             {
-                var optimal = dict.OrderBy(x => x.Value.Count()).First();
+                var optimal = dict.OrderBy(x => x.Value.Count()).ThenBy(x => x.Value.Sum(y=>Math.Abs(y.Power))).First();
                 derived = optimal.Key;
                 remain = optimal.Value;
                 return true;
