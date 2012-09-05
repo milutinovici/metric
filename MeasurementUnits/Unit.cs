@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Text;
@@ -14,48 +15,12 @@ namespace MeasurementUnits
     public sealed class Unit : IEnumerable<Unit>
     {
         #region Fields & Properties
-        internal event PropertyChangedEventHandler PropertyChanged;
-        private int _power;
-        public int Power
-        {
-            get
-            {
-                return _power;
-            }
-            set
-            {
-                var quotient = value / _power;
-                _power = value;
-                Units = Units.Select(x => x.Pow(quotient)).ToArray();
-            }
-        }
-        private Prefix _prefix;
-        public double Quantity { get; internal set; }
-        public Prefix Prefix
-        {
-            get { return _prefix; }
-            set
-            {
-                int difference = (value - _prefix) * _power;
-                if (Units.Count > 0)
-                {
-                    var s = Units.OrderBy(x => Math.Abs(difference % x.Power)).ThenBy(x => Math.Abs((int)x.Prefix)).ThenBy(x => Math.Abs(x.Power)).First();
-                    s.Prefix += difference / s.Power;
-                }
-                //Quantity *= Math.Pow(10, -difference);
-                if (PropertyChanged != null)
-                {
-                    PropertyChanged(difference, new PropertyChangedEventArgs("Prefix"));
-                }
-                _prefix = value;
-
-            }
-        }
-        private BaseUnit _baseUnit;
-        private BaseUnit BaseUnit { get { return _baseUnit; } set { _baseUnit = value; UnitName = value.ToString(); } }
+        private BaseUnit BaseUnit { get; set; } 
+        public int Power { get; private set; }
+        public Prefix Prefix { get; private set; }
+        public double Quantity { get; private set; }
         public string UnitName { get; private set; }
-        public IList<Unit> Units { get; set; }
-
+        public IList<Unit> Units { get; private set; }
         #region Derived Units
         private static readonly IEnumerable<Unit> DerivedUnits = new List<Unit> 
         {
@@ -84,20 +49,21 @@ namespace MeasurementUnits
         #region Constructors
         private Unit()
         {
-            Units = new List<Unit>();
-            Quantity = 1;
-            _power = 1;
+            this.Units = new ReadOnlyCollection<Unit>(new List<Unit>());
+            this.Quantity = 1;
+            this.Power = 1;
         }
         public Unit(BaseUnit baseUnit, int power = 1)
             : this()
         {
             this.BaseUnit = baseUnit;
+            this.UnitName = baseUnit != 0 ? baseUnit.ToString() : "";
             this.Power = power;
         }
         public Unit(Prefix prefix, BaseUnit baseUnit, int power = 1)
             : this(baseUnit, power)
         {
-            this._prefix = prefix;
+            this.Prefix = prefix;
         }
         public Unit(double quantity, BaseUnit baseUnit, int power = 1)
             : this(baseUnit, power)
@@ -107,31 +73,30 @@ namespace MeasurementUnits
         public Unit(double quantity, Prefix prefix, BaseUnit baseUnit, int power = 1)
             : this(quantity, baseUnit, power)
         {
-            this._prefix = prefix;
+            this.Prefix = prefix;
         }
         public Unit(params Unit[] units)
             :this()
         {
-            Quantity *= units.Aggregate(1.0, (x, y) => x * y.Quantity);
-            Units = OrderUnits(units.Where(x => x.Power != 0).Select(x => x.Pow(1)));
+            this.Quantity *= units.Aggregate(1.0, (x, y) => x * y.Quantity);
+            this.Units = OrderUnits(units.Where(x => x.Power != 0).Select(x => x.Pow(1)));
             foreach (var unit in Units)
             {
-                unit.PropertyChanged += unit_PropertyChanged;
                 unit.Quantity = 1;
             }
         }
         public Unit(double quantity, params Unit[] units)
             : this(units)
         {
-            Quantity *= quantity;
+            this.Quantity *= quantity;
         }
 
         private Unit(double quantity = 1, Prefix prefix = 0, string unitName = null, int power = 1, params Unit[] units)
             : this(quantity, units)
         {
-            UnitName = unitName;
-            _prefix = prefix;
-            _power = power;
+            this.UnitName = unitName;
+            this.Prefix = prefix;
+            this.Power = power;
         }
         #endregion
         #region Operators
@@ -171,7 +136,6 @@ namespace MeasurementUnits
                 var power10 = u1.Power10Difference(averagePrefix) + u2.Power10Difference(averagePrefix);
                 var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, power10);
                 var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power + u2.Power);
-
                 return newUnit;
             }
             else
@@ -183,18 +147,47 @@ namespace MeasurementUnits
         {
             return u1 * u2.Pow(-1);
         }
+        #region Double & Unit Operators
+        public static Unit operator +(double number, Unit unit)
+        {
+            return unit.DifferentQuantity(unit.Quantity + number);
+        }
+        public static Unit operator +(Unit unit, double number)
+        {
+            return number + unit;
+        }
+        public static Unit operator -(double number, Unit unit)
+        {
+            return unit.DifferentQuantity(number - unit.Quantity);
+        }
+        public static Unit operator -(Unit unit, double number)
+        {
+            return unit.DifferentQuantity(unit.Quantity - number);
+        }
+        public static Unit operator *(double number, Unit unit)
+        {
+            return unit.DifferentQuantity(unit.Quantity * number);
+        }
+        public static Unit operator *(Unit unit, double number)
+        {
+            return number * unit;
+        }
+        public static Unit operator /(double number, Unit unit)
+        {
+            return unit.Pow(-1).DifferentQuantity(number / unit.Quantity);
+        }
+        public static Unit operator /(Unit unit, double number)
+        {
+            return unit.DifferentQuantity(unit.Quantity / number);
+        }
+        #endregion
         #endregion
         #region Methods
         private static IList<Unit> OrderUnits(IEnumerable<Unit> units)
         {
-            return /*new ReadOnlyCollection<Unit>(*/units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray()/*)*/;
+            return new ReadOnlyCollection<Unit>(units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray());
         }
-        private void unit_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            int i = (int)_prefix + (int)sender;
-            Prefix newPrefix = PrefixHelpers.FindClosestPrefix(i);
-            _prefix = newPrefix;
-        }
+
         public static Unit Multiply(params Unit[] units)
         {
             var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
@@ -244,19 +237,50 @@ namespace MeasurementUnits
 
         public Unit Pow(int power)
         {
-            Unit powered;
+            Unit newUnit;
             double quantity = Math.Pow(Quantity, power);
             int newPower = Power * power;
             if (Units.Count == 0)
             {
-                powered = new Unit(quantity, Prefix, BaseUnit, newPower);
+                newUnit = new Unit(quantity, Prefix, BaseUnit, newPower);
             }
             else
             {
                 var units = Units.Select(x => x.Pow(power)).ToArray();
-                powered = new Unit(quantity, Prefix, UnitName, newPower, units);
+                newUnit = new Unit(quantity, Prefix, UnitName, newPower, units);
             }
-            return powered;
+            return newUnit;
+        }
+        public Unit ChangePrefix(Prefix prefix)
+        {
+            Unit newUnit;
+            int difference = (prefix - Prefix) * Power;
+            double quantity = Quantity;// * Math.Pow(10, -difference);
+            if (Units.Count == 0)
+            {
+                newUnit = new Unit(quantity, prefix, BaseUnit, Power);
+            }
+            else
+            {
+                var units = Units.OrderBy(x => Math.Abs(difference % x.Power)).ThenBy(x => Math.Abs((int)x.Prefix)).ThenBy(x => Math.Abs(x.Power)).Select(x=>x.Pow(1)).ToArray();
+                units[0] = units[0].ChangePrefix(Prefix + difference / units[0].Power);
+                newUnit = new Unit(quantity, prefix, UnitName, Power, units);
+            }
+            return newUnit;
+        }
+        private Unit DifferentQuantity(double quantity)
+        {
+            Unit newUnit;
+            if (Units.Count == 0)
+            {
+                newUnit = new Unit(quantity, Prefix, BaseUnit, Power);
+            }
+            else
+            {
+                var units = Units.Select(x => x.Pow(1)).ToArray();
+                newUnit = new Unit(quantity, Prefix, UnitName, Power, units);
+            }
+            return newUnit;
         }
 
         private int Power10Difference(Prefix prefix)
@@ -357,7 +381,7 @@ namespace MeasurementUnits
 
         public override int GetHashCode()
         {
-            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.BaseUnit * y.Power);
+            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.UnitName.GetHashCode() * y.Power);
         }
         #endregion
         #region DerivedUnits

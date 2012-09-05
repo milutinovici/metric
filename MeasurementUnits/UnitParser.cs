@@ -42,8 +42,7 @@ namespace MeasurementUnits
                     pw *= -1;
                 }
                 Unit u = LinearUnit(unit[0]);
-                u.Power = pw;
-                units.Add(u);
+                units.Add(u.Pow(pw));
             }
             if (units.Count == 1)
             {
@@ -73,7 +72,7 @@ namespace MeasurementUnits
             if (linearUnit.Length - test.Length == 1)
             {
                 Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
-                u.Prefix = px;
+                u = u.ChangePrefix(px);
             }
             return u;
         }

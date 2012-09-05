@@ -111,34 +111,9 @@ namespace UnitTest
         public void PrefixTransferDown()
         {
             Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
-            n.Prefix = Prefix.m;
+            n = n.ChangePrefix(Prefix.m);
             var u = n.Units.First();
             Assert.AreEqual(Prefix.m, n.Prefix);
-        }
-
-        //[TestMethod]
-        //public void PrefixTransferUp()
-        //{
-        //    Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
-        //    var t = n.ToString();
-        //    n.Units.First().Prefix = Prefix.M;
-        //    Assert.AreEqual(Prefix.M, n.Prefix);
-        //}
-
-        [TestMethod]
-        public void PrefixTransferUpM2()
-        {
-            Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
-            n.Units.Last().Prefix = Prefix.k;
-            Assert.AreEqual(Prefix.μ, n.Prefix);
-        }
-
-        [TestMethod]
-        public void PrefixTransferUpWithRounding()
-        {
-            Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
-            n.Units.Last().Prefix = Prefix.c;
-            Assert.AreEqual(Prefix.k, n.Prefix);
         }
 
         [TestMethod]

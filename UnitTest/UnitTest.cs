@@ -86,11 +86,50 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void kmEquals1000m()
+        public void ChangePrefixBase()
         {
-            var m = new Unit(1000, BaseUnit.m);
-            var km = new Unit(1, Prefix.k, BaseUnit.m);
-            Assert.IsTrue(m.Equals(km));
+            var m = new Unit(BaseUnit.m);
+            var km = m.ChangePrefix(Prefix.k);
+            Assert.AreEqual("1km", km.ToString());
+        }
+        [TestMethod]
+        public void ChangePrefixDerived()
+        {  
+            var n = Unit.GetBySymbol("N");
+            var mN = n.ChangePrefix(Prefix.m);
+            Assert.AreEqual("1mN", mN.ToString());
+        }
+
+        [TestMethod]
+        public void NumberAddition()
+        {
+            var w = Unit.GetBySymbol("W");
+            var nw = w + 100;
+            Assert.AreEqual("101W", nw.ToString());
+        }
+
+        [TestMethod]
+        public void NumberSubstraction()
+        {
+            var w = Unit.GetBySymbol("W");
+            var nw = w - 100;
+            Assert.AreEqual("-99W", nw.ToString());
+        }
+
+        [TestMethod]
+        public void NumberMultiplication()
+        {
+            var w = Unit.GetBySymbol("W");
+            var nw = w * 100;
+            Assert.AreEqual("100W", nw.ToString());
+        }
+
+        [TestMethod]
+        public void NumberDivision()
+        {
+            var w = Unit.GetBySymbol("W");
+            var nw =  100 / w;
+            Assert.AreEqual("100W^-1", nw.ToString("c"));
         }
     }
 }
