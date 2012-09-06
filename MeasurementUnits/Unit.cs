@@ -212,7 +212,6 @@ namespace MeasurementUnits
         {
             return new ReadOnlyCollection<Unit>(units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray());
         }
-
         public static Unit Multiply(params Unit[] units)
         {
             var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
@@ -234,7 +233,6 @@ namespace MeasurementUnits
                 return new Unit(unitName: symbol, units: derived);
             }
         }
-
         public static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
@@ -245,7 +243,6 @@ namespace MeasurementUnits
             unit.Quantity = q;
             return unit;
         }
-
         public static bool TryParse(string s, out Unit unit)
         {
             try
@@ -259,7 +256,6 @@ namespace MeasurementUnits
                 return false;
             }
         }
-
         public Unit Pow(double power)
         {
             Unit newUnit;
@@ -311,12 +307,10 @@ namespace MeasurementUnits
             }
             return newUnit;
         }
-
         private int Power10Difference(Prefix prefix)
         {
             return Power * ((int)Prefix - (int)prefix);
         }
-
         private void Normalize()
         {
             var power10 = PrefixHelpers.Power10(Quantity);
@@ -328,22 +322,24 @@ namespace MeasurementUnits
                 Quantity *= Math.Pow(10, pow);
             }
         }
-
         public override string ToString()
         {
             return ToString("");
         }
-
         public string ToString(string format)
         {
+            FindDerivedUnits();
             format = format.ToLower();
-            bool findDerived = !format.Contains("b"); // base units only
-            if (findDerived) FindDerivedUnits();
+            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // ignore quantity
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
-            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // ignore quantity
+            bool baseOnly = format.Contains("b"); // base units only
             string unitString = "";
-            if (string.IsNullOrEmpty(UnitName) && Units.Count() > 0)
+            if (baseOnly)
+            {
+                unitString = Stringifier.MultipleUnitsToString(Unit.Multiply(Units.ToArray()).SelectMany(x => x), fancy, useDivisor);
+            }
+            else if (string.IsNullOrEmpty(UnitName) && Units.Count() > 0)
             {
                 unitString = Stringifier.MultipleUnitsToString(Units, fancy, useDivisor);
             }
@@ -353,7 +349,6 @@ namespace MeasurementUnits
             }
             return string.Format("{0}{1}", quantity, unitString);
         }
-
         public IEnumerator<Unit> GetEnumerator()
         {
             if (Units.Count == 0)
@@ -368,28 +363,9 @@ namespace MeasurementUnits
                 }
             }
         }
-
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
-        }
-
-        public bool IsComparable(Unit u)
-        {
-            if (Power == u.Power) 
-            {
-                if(UnitName == u.UnitName)
-                {
-                    return true;
-                }
-                else
-                {
-                    var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
-                    var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
-                    return a.Union(b).Any() && !a.Except(b).Any();
-                }
-            }
-            return false;
         }
         public override bool Equals(object obj)
         {
@@ -404,6 +380,23 @@ namespace MeasurementUnits
         {
             return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.UnitName.GetHashCode() * y.Power);
         }
+        public bool IsComparable(Unit u)
+        {
+            if (Power == u.Power)
+            {
+                if (UnitName == u.UnitName)
+                {
+                    return true;
+                }
+                else
+                {
+                    var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                    var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
+                    return a.Union(b).Any() && !a.Except(b).Any();
+                }
+            }
+            return false;
+        }
         public bool Equals(Unit other)
         {
             if (IsComparable(other))
@@ -414,7 +407,6 @@ namespace MeasurementUnits
             }
             return false;
         }
-
         public int CompareTo(Unit other)
         {
             if (IsComparable(other))
@@ -438,7 +430,7 @@ namespace MeasurementUnits
             return CompareTo((Unit)obj);
         }
         #endregion
-        #region DerivedUnits
+        #region DerivedUnits Methods
 
         public void FindDerivedUnits()
         {
@@ -520,6 +512,5 @@ namespace MeasurementUnits
             return 0;
         }
         #endregion
-
     }
 }
