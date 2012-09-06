@@ -189,7 +189,7 @@ namespace MeasurementUnits
         {
             var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
             var groups = units.SelectMany(x => x).GroupBy(x => x.UnitName);
-            var multiplied = groups.AsParallel().Select(group => group.Aggregate((x, y) => x * y)).ToArray();
+            var multiplied = groups.Select(group => group.Aggregate((x, y) => x * y)).ToArray();
             return new Unit(quantity, multiplied);
         }
         public static Unit GetBySymbol(string symbol)
@@ -305,7 +305,7 @@ namespace MeasurementUnits
         public string ToString(string format)
         {
             format = format.ToLower();
-            bool findDerived = string.IsNullOrEmpty(UnitName) && !Searched && !format.Contains("b"); // base units only
+            bool findDerived = !format.Contains("b"); // base units only
             if (findDerived) FindDerivedUnits();
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
@@ -385,7 +385,7 @@ namespace MeasurementUnits
 
         public void FindDerivedUnits()
         {
-            if (string.IsNullOrEmpty(UnitName))
+            if (!Searched && string.IsNullOrEmpty(UnitName))
             {
                 var units = new List<Unit>();
                 Unit d = null;
@@ -413,7 +413,7 @@ namespace MeasurementUnits
             var dict = FindPossibleDerivedUnits();
             if (dict.Any())
             {
-                var optimal = dict.OrderBy(x => x.Value.Count()).ThenBy(x => x.Value.Sum(y=>Math.Abs(y.Power))).First();
+                var optimal = dict.OrderBy(x => x.Value.Count()).ThenBy(x => x.Value.Sum(y => Math.Abs(y.Power))).First();
                 derived = optimal.Key;
                 remain = optimal.Value;
                 return true;
@@ -424,12 +424,13 @@ namespace MeasurementUnits
         private IDictionary<Unit, Unit> FindPossibleDerivedUnits()
         {
             var dict = new ConcurrentDictionary<Unit, Unit>();
-            DerivedUnits.AsParallel().ForAll(derivedUnit =>
+            DerivedUnits.Where(x=>x.Units.Count <= Units.Count).AsParallel().ForAll(derivedUnit =>
             {
-                int factor = 0;
-                var remain = this.HasFactor(derivedUnit, ref factor);
+                int factor = this.FactorOf(derivedUnit);
+                
                 if (factor != 0)
                 {
+                    Unit remain = this / derivedUnit.Pow(factor);
                     var pow10 = PrefixHelpers.Power10(remain.Quantity);
                     var prfx = PrefixHelpers.FindClosestPrefix(pow10 / factor);
                     var units = derivedUnit.Units.SelectMany(x => x.Pow(1)).ToArray();
@@ -441,53 +442,26 @@ namespace MeasurementUnits
             return dict;
         }
 
-        public Unit HasFactor(Unit unit, ref int factor)
+        internal int FactorOf(Unit possibleFactor)
         {
-            Unit u = new Unit();
-            if (unit.UnitName == this.UnitName)
+            var pfUnits = possibleFactor.SelectMany(x => x).ToList();
+            var tUnits = this.SelectMany(x=>x).ToList();
+            var pfPowers = new List<int>();
+            foreach (var unit in pfUnits)
             {
-                factor = this.Power / unit.Power;
-            }
-            else
-            {
-                u = Factor(unit, ref factor);
-                if (factor == 0)
+                try
                 {
-                    u = Factor(unit.Pow(-1), ref factor);
-                    factor *= -1;
+                    int pow = tUnits.First(x => x.UnitName == unit.UnitName).Power / unit.Power;
+                    pfPowers.Add(pow);
                 }
+                catch { break; }
             }
-            return u;
-        }
-
-        private Unit Factor(Unit possibleFactor, ref int factor)
-        {
-            var remain = this;
-            bool repeat = false;
-            Unit reciprocalFactor = possibleFactor.Pow(-1);
-            do
+            var numberOfSigns = pfPowers.Where(x => x != 0).Select(x => Math.Sign(x)).Distinct().Count();
+            if (pfPowers.Count == pfUnits.Count && numberOfSigns < 2)
             {
-                var quotient = remain * reciprocalFactor;
-                var quotients = this.SelectMany(x => x).Concat(quotient.SelectMany(x => x)).GroupBy(x => x.UnitName);
-                var factors = this.SelectMany(x => x).Concat(possibleFactor.SelectMany(x => x)).GroupBy(x => x.UnitName);
-
-                var qgroup = quotients.Where(group => group.Count() > 1);
-                var fgroup = factors.Where(group => group.Count() > 1);
-                var rgroup = quotients.Where(group => group.Count() < 2).SelectMany(x => x).Concat(factors.Where(group => group.Count() < 2).SelectMany(x => x))
-                    .GroupBy(x => x.UnitName).Where(group => group.Count() > 1);
-
-                bool qTest = !qgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
-                bool fTest = !fgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
-                bool rTest = !rgroup.Any(x => x.Aggregate(1, (a, b) => a * b.Power) < 0);
-                repeat = qTest && fTest && rTest;
-                if (repeat)
-                {
-                    remain = quotient;
-                    factor++;
-                }
+                return pfPowers.OrderBy(x=>Math.Abs(x)).First();
             }
-            while (repeat);
-            return remain;
+            return 0;
         }
         #endregion
     }

@@ -50,24 +50,22 @@ namespace UnitTest
         [TestMethod]
         public void HasFactorBaseUnit()
         {
-            int power = 0;
-            var u = N.HasFactor(S, ref power);
+            int power = N.FactorOf(S);
             Assert.AreEqual(-2, power);
         }
 
         [TestMethod]
         public void HasFactorComplexUnit()
         {
-            int power = 0;
-            var u = N.Pow(2).HasFactor(N, ref power);
+
+            int power = N.Pow(2).FactorOf(N);
             Assert.AreEqual(2, power);
         }
 
         [TestMethod]
         public void HasFactorNegativeComplexUnit()
         {
-            int power = 0;
-            var u = N.HasFactor(N.Pow(-1), ref power);
+            int power = N.FactorOf(N.Pow(-1));
             Assert.AreEqual(-1, power);
         }
 
@@ -138,13 +136,14 @@ namespace UnitTest
             Assert.IsTrue(w.Equals(kw));
         }
 
-        //[TestMethod]
-        //public void kJTo1000J()
-        //{
-        //    var kJ = Unit.Parse("1kJ");
-        //    kJ.Prefix = 0;
-        //    Assert.AreEqual("1000J", kJ.ToString());
-        //}
+        [TestMethod]
+        public void FactorOf()
+        {
+            int f1 = N.FactorOf(N.Pow(-1) / S);
+            int f2 = N.FactorOf(N.Pow(-1) * S);
+            Assert.AreEqual(f1, -1); 
+            Assert.AreEqual(f2, 0);
+        }
     }
 }
 
