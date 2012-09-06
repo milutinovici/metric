@@ -135,7 +135,6 @@ namespace UnitTest
             var kw = new Unit(1, new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
             Assert.IsTrue(w.Equals(kw));
         }
-
         [TestMethod]
         public void HasFactor()
         {
@@ -144,7 +143,13 @@ namespace UnitTest
             Assert.AreEqual(-1, f1);
             Assert.AreEqual(0, f2);
         }
-
+        [TestMethod]
+        public void SquareRoot()
+        {
+            var u = N.Pow(2).Pow(0.5);
+ 
+            Assert.AreEqual("1N", u.ToString());
+        }
         [TestMethod]
         [ExpectedException(typeof(DimensionSplitException))]
         public void DimensionSplit()

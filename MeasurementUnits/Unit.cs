@@ -12,7 +12,7 @@ namespace MeasurementUnits
 {
     public enum BaseUnit { m = 2, g = 3, s = 5, A = 7, K = 11, cd = 13, mol = 17 }
 
-    public sealed class Unit : IEnumerable<Unit>, IEquatable<Unit>, IComparable<Unit>
+    public sealed class Unit : IEnumerable<Unit>, IEquatable<Unit>, IComparable<Unit>, IComparable
     {
         #region Fields & Properties
         private BaseUnit BaseUnit { get; set; } 
@@ -97,6 +97,7 @@ namespace MeasurementUnits
         }
         #endregion
         #region Operators
+        #region Math operators
         public static Unit operator +(Unit u1, Unit u2)
         {
             if (u1.IsComparable(u2))
@@ -144,6 +145,7 @@ namespace MeasurementUnits
         {
             return u1 * u2.Pow(-1);
         }
+        #endregion
         #region Double & Unit Operators
         public static Unit operator +(double number, Unit unit)
         {
@@ -178,7 +180,32 @@ namespace MeasurementUnits
             return unit.DifferentQuantity(unit.Quantity / number);
         }
         #endregion
-        
+        #region Comparison Operators
+        public static bool operator ==(Unit u1, Unit u2)
+        {
+            return Equals(u1, u2);
+        }
+        public static bool operator !=(Unit u1, Unit u2)
+        {
+            return !Equals(u1, u2);
+        }
+        public static bool operator <(Unit u1, Unit u2)
+        {
+            return u1.CompareTo(u2) < 0;
+        }
+        public static bool operator >(Unit u1, Unit u2)
+        {
+            return u1.CompareTo(u2) > 0;
+        }
+        public static bool operator <=(Unit u1, Unit u2)
+        {
+            return u1.CompareTo(u2) <= 0;
+        }
+        public static bool operator >=(Unit u1, Unit u2)
+        {
+            return u1.CompareTo(u2) >= 0;
+        }
+        #endregion
         #endregion
         #region Methods
         private static IList<Unit> OrderUnits(IEnumerable<Unit> units)
@@ -397,6 +424,18 @@ namespace MeasurementUnits
                 return (Math.Pow(10, power1) * Quantity).CompareTo(Math.Pow(10, power2) * other.Quantity);
             }
             throw new GrandmothersAndFrogsException(this, other, "There you go mixing them again...");
+        }
+        public int CompareTo(object obj)
+        {
+            if (obj == null)
+            {
+                return 1;
+            }
+            if (!(obj is Unit))
+            {
+                throw new GrandmothersAndFrogsException(this, obj, "There you go mixing them again...");
+            }
+            return CompareTo((Unit)obj);
         }
         #endregion
         #region DerivedUnits
