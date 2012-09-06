@@ -25,7 +25,7 @@ namespace UnitTest
         public void IsAddableComplexWithDifferentPrefixes()
         {
             var kn = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            Assert.IsTrue(N.IsAddable(kn));
+            Assert.IsTrue(N.IsComparable(kn));
         }
 
         [TestMethod]
@@ -50,7 +50,7 @@ namespace UnitTest
         [TestMethod]
         public void HasFactorBaseUnit()
         {
-            int power = N.FactorOf(S);
+            int power = N.HasFactor(S);
             Assert.AreEqual(-2, power);
         }
 
@@ -58,14 +58,14 @@ namespace UnitTest
         public void HasFactorComplexUnit()
         {
 
-            int power = N.Pow(2).FactorOf(N);
+            int power = N.Pow(2).HasFactor(N);
             Assert.AreEqual(2, power);
         }
 
         [TestMethod]
         public void HasFactorNegativeComplexUnit()
         {
-            int power = N.FactorOf(N.Pow(-1));
+            int power = N.HasFactor(N.Pow(-1));
             Assert.AreEqual(-1, power);
         }
 
@@ -137,12 +137,19 @@ namespace UnitTest
         }
 
         [TestMethod]
-        public void FactorOf()
+        public void HasFactor()
         {
-            int f1 = N.FactorOf(N.Pow(-1) / S);
-            int f2 = N.FactorOf(N.Pow(-1) * S);
-            Assert.AreEqual(f1, -1); 
-            Assert.AreEqual(f2, 0);
+            int f1 = N.HasFactor(N.Pow(-1) / S);
+            int f2 = N.HasFactor(N.Pow(-1) * S);
+            Assert.AreEqual(-1, f1);
+            Assert.AreEqual(0, f2);
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(DimensionSplitException))]
+        public void DimensionSplit()
+        {
+            N.Pow(0.5);
         }
     }
 }

@@ -35,6 +35,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DimensionSplitException.cs" />
     <Compile Include="GrandmothersAndFrogsException.cs" />
     <Compile Include="Prefix.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -49,6 +49,13 @@ namespace UnitTest
         }
 
         [TestMethod]
+        [ExpectedException(typeof(GrandmothersAndFrogsException))]
+        public void AdditionOfGrandmothersAndFrogs()
+        {
+            var u = Kg + M;
+        }
+
+        [TestMethod]
         public void SubstractionWithPrefix()
         {
             Assert.AreEqual("0kg", (Kg - Kg).ToString());
@@ -138,6 +145,14 @@ namespace UnitTest
             var w = Unit.GetBySymbol("W");
             var nw = w / S;
             Assert.AreEqual("1W/s", nw.ToString("d"));
+        }
+
+        [TestMethod]
+        public void CompareTo()
+        {
+            var m = new Unit(999, BaseUnit.m);
+            var km = new Unit(1, Prefix.k, BaseUnit.m);
+            Assert.AreEqual(-1, m.CompareTo(km));
         }
     }
 }

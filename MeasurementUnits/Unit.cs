@@ -12,7 +12,7 @@ namespace MeasurementUnits
 {
     public enum BaseUnit { m = 2, g = 3, s = 5, A = 7, K = 11, cd = 13, mol = 17 }
 
-    public sealed class Unit : IEnumerable<Unit>
+    public sealed class Unit : IEnumerable<Unit>, IEquatable<Unit>, IComparable<Unit>
     {
         #region Fields & Properties
         private BaseUnit BaseUnit { get; set; } 
@@ -99,7 +99,7 @@ namespace MeasurementUnits
         #region Operators
         public static Unit operator +(Unit u1, Unit u2)
         {
-            if (u1.IsAddable(u2))
+            if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
                 var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) + u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
@@ -108,12 +108,12 @@ namespace MeasurementUnits
             }
             else
             {
-                throw new GrandmothersAndFrogsException("You can't mix them. You just can't");
+                throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
             }
         }
         public static Unit operator -(Unit u1, Unit u2)
         {
-            if (u1.IsAddable(u2))
+            if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
                 var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) - u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
@@ -122,7 +122,7 @@ namespace MeasurementUnits
             }
             else
             {
-                throw new GrandmothersAndFrogsException("You can't mix them. You just can't");
+                throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
             }
         }
         public static Unit operator *(Unit u1, Unit u2)
@@ -178,6 +178,7 @@ namespace MeasurementUnits
             return unit.DifferentQuantity(unit.Quantity / number);
         }
         #endregion
+        
         #endregion
         #region Methods
         private static IList<Unit> OrderUnits(IEnumerable<Unit> units)
@@ -232,19 +233,23 @@ namespace MeasurementUnits
             }
         }
 
-        public Unit Pow(int power)
+        public Unit Pow(double power)
         {
             Unit newUnit;
             double quantity = Math.Pow(Quantity, power);
-            int newPower = Power * power;
+            double newPower = Power * power;
+            if (newPower % 1 != 0 && !string.IsNullOrEmpty(UnitName))
+            {
+                throw new DimensionSplitException(this, "You opened the portal to Dimension X. Krang and his forces are after you!");
+            }
             if (Units.Count == 0)
             {
-                newUnit = new Unit(quantity, Prefix, BaseUnit, newPower);
+                newUnit = new Unit(quantity, Prefix, BaseUnit, (int)newPower);
             }
             else
             {
                 var units = Units.Select(x => x.Pow(power)).ToArray();
-                newUnit = new Unit(quantity, Prefix, UnitName, newPower, units);
+                newUnit = new Unit(quantity, Prefix, UnitName, (int)newPower, units);
             }
             return newUnit;
         }
@@ -252,7 +257,7 @@ namespace MeasurementUnits
         {
             Unit newUnit;
             int difference = (prefix - Prefix) * Power;
-            double quantity = Quantity;// * Math.Pow(10, -difference);
+            double quantity = Quantity;
             if (Units.Count == 0)
             {
                 newUnit = new Unit(quantity, prefix, BaseUnit, Power);
@@ -342,7 +347,7 @@ namespace MeasurementUnits
             return GetEnumerator();
         }
 
-        public bool IsAddable(Unit u)
+        public bool IsComparable(Unit u)
         {
             if (Power == u.Power) 
             {
@@ -354,31 +359,44 @@ namespace MeasurementUnits
                 {
                     var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
                     var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
-                    return !a.Except(b).Any();
+                    return a.Union(b).Any() && !a.Except(b).Any();
                 }
             }
             return false;
         }
-
         public override bool Equals(object obj)
         {
             var unit = obj as Unit;
             if (unit != null)
             {
-                if (IsAddable(unit))
-                {
-                    var power1 = this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
-                    var power2 = unit.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
-                    return Math.Pow(10, power1) * Quantity == Math.Pow(10, power2) * unit.Quantity;
-                }
-                return false;
+                return Equals(unit);
+            }
+            return false;
+        }
+        public override int GetHashCode()
+        {
+            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.UnitName.GetHashCode() * y.Power);
+        }
+        public bool Equals(Unit other)
+        {
+            if (IsComparable(other))
+            {
+                var power1 = this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
+                var power2 = other.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
+                return Math.Pow(10, power1) * Quantity == Math.Pow(10, power2) * other.Quantity;
             }
             return false;
         }
 
-        public override int GetHashCode()
+        public int CompareTo(Unit other)
         {
-            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.UnitName.GetHashCode() * y.Power);
+            if (IsComparable(other))
+            {
+                var power1 = this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
+                var power2 = other.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix);
+                return (Math.Pow(10, power1) * Quantity).CompareTo(Math.Pow(10, power2) * other.Quantity);
+            }
+            throw new GrandmothersAndFrogsException(this, other, "There you go mixing them again...");
         }
         #endregion
         #region DerivedUnits
@@ -426,7 +444,7 @@ namespace MeasurementUnits
             var dict = new ConcurrentDictionary<Unit, Unit>();
             DerivedUnits.Where(x=>x.Units.Count <= Units.Count).AsParallel().ForAll(derivedUnit =>
             {
-                int factor = this.FactorOf(derivedUnit);
+                int factor = this.HasFactor(derivedUnit);
                 
                 if (factor != 0)
                 {
@@ -442,7 +460,7 @@ namespace MeasurementUnits
             return dict;
         }
 
-        internal int FactorOf(Unit possibleFactor)
+        public int HasFactor(Unit possibleFactor)
         {
             var pfUnits = possibleFactor.SelectMany(x => x).ToList();
             var tUnits = this.SelectMany(x=>x).ToList();
@@ -456,13 +474,13 @@ namespace MeasurementUnits
                 }
                 catch { break; }
             }
-            var numberOfSigns = pfPowers.Where(x => x != 0).Select(x => Math.Sign(x)).Distinct().Count();
-            if (pfPowers.Count == pfUnits.Count && numberOfSigns < 2)
+            if (pfPowers.Count == pfUnits.Count && pfPowers.Where(x => x != 0).Select(x => Math.Sign(x)).Distinct().Count() < 2)
             {
-                return pfPowers.OrderBy(x=>Math.Abs(x)).First();
+                return pfPowers.OrderBy(x => Math.Abs(x)).First();
             }
             return 0;
         }
         #endregion
+
     }
 }

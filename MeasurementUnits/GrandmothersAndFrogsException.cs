@@ -8,11 +8,12 @@ namespace MeasurementUnits
 {
     public class GrandmothersAndFrogsException : Exception
     {
-
-        public GrandmothersAndFrogsException(string message) : base(message)
+        public Unit GrandMother { get; private set; }
+        public Unit Frog { get; private set; }
+        public GrandmothersAndFrogsException(Unit grandMother, Unit frog, string message)
+            : base(message)
         {
 
         }
-
     }
 }
