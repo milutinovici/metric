@@ -44,6 +44,8 @@ namespace MeasurementUnits
             new Unit(unitName :"Gy", units : new[] { new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
             new Unit(unitName :"lx",units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
             new Unit(unitName :"kat",units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
+
+            //new Unit(unitName :"min",units : new[] { new Unit(60, BaseUnit.s) }),
         };
         #endregion
         #endregion
@@ -103,44 +105,40 @@ namespace MeasurementUnits
             if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
-                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) + u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
-                var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power); 
+                var quantity = u1.Quantity*Math.Pow(10, u1.Power10Difference(averagePrefix)) +
+                               u2.Quantity*Math.Pow(10, u2.Power10Difference(averagePrefix));
+                var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power);
                 return newUnit;
             }
-            else
-            {
-                throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
-            }
+            throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
         }
+
         public static Unit operator -(Unit u1, Unit u2)
         {
             if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
-                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) - u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
+                var quantity = u1.Quantity*Math.Pow(10, u1.Power10Difference(averagePrefix)) -
+                               u2.Quantity*Math.Pow(10, u2.Power10Difference(averagePrefix));
                 var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power);
                 return newUnit;
             }
-            else
-            {
-                throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
-            }
+            throw new GrandmothersAndFrogsException(u1, u2, "You can't mix them. You just can't");
         }
+
         public static Unit operator *(Unit u1, Unit u2)
         {
-            if (u1.BaseUnit == u2.BaseUnit && u1.BaseUnit != 0)
+            if (u1.BaseUnit != u2.BaseUnit || u1.BaseUnit == 0)
             {
-                var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
-                var power10 = u1.Power10Difference(averagePrefix) + u2.Power10Difference(averagePrefix);
-                var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, power10);
-                var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power + u2.Power);
-                return newUnit;
+                return Multiply(u1, u2);
             }
-            else
-            {
-                return Unit.Multiply(u1, u2);
-            }
+            var averagePrefix = PrefixHelpers.AveragePrefix(u1.Prefix, u2.Prefix);
+            var power10 = u1.Power10Difference(averagePrefix) + u2.Power10Difference(averagePrefix);
+            var quantity = u1.Quantity*u2.Quantity*Math.Pow(10, power10);
+            var newUnit = new Unit(quantity, averagePrefix, u1.BaseUnit, u1.Power + u2.Power);
+            return newUnit;
         }
+
         public static Unit operator /(Unit u1, Unit u2)
         {
             return u1 * u2.Pow(-1);
@@ -212,6 +210,11 @@ namespace MeasurementUnits
         {
             return new ReadOnlyCollection<Unit>(units.OrderByDescending(x => Math.Sign(x.Power)).ThenBy(x => x.UnitName).ToArray());
         }
+        /// <summary>
+        /// Multiply specified units and return the product
+        /// </summary>
+        /// <param name="units"></param>
+        /// <returns></returns>
         public static Unit Multiply(params Unit[] units)
         {
             var quantity = units.Aggregate(1.0, (x, y) => x * y.Quantity);
@@ -219,30 +222,43 @@ namespace MeasurementUnits
             var multiplied = groups.Select(group => group.Aggregate((x, y) => x * y)).ToArray();
             return new Unit(quantity, multiplied);
         }
+        /// <summary>
+        /// Get a single Unit, base or derived, using the string specified
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns>new Unit</returns>
         public static Unit GetBySymbol(string symbol)
         {
             BaseUnit bu;
-            bool success = Enum.TryParse<BaseUnit>(symbol, out bu);
+            bool success = Enum.TryParse(symbol, out bu);
             if (success)
             {
                 return new Unit(bu);
             }
-            else
-            {
-                var derived = Unit.DerivedUnits.First(x => x.UnitName == symbol).SelectMany(x => x.Pow(1)).ToArray();
-                return new Unit(unitName: symbol, units: derived);
-            }
+            var derived = DerivedUnits.Single(x => x.UnitName == symbol).SelectMany(x => x.Pow(1)).ToArray();
+            return new Unit(unitName: symbol, units: derived);
         }
+        /// <summary>
+        /// Parse specified string to Unit
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns>new Unit</returns>
         public static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-            var d = Regex.Split(s, @"[^0-9\.,]+").Where(c => c != "." && c.Trim() != "").First();
+            var d = Regex.Split(s, @"[^0-9\.,]+").First(c => c != "." && c.Trim() != "");
             double q = double.Parse(d);
             s = s.Substring(d.Length, s.Length - d.Length);
             var unit = UnitParser.Parse(s);
             unit.Quantity = q;
             return unit;
         }
+        /// <summary>
+        /// Try to parse specified string to Unit
+        /// </summary>
+        /// <param name="s"></param>
+        /// <param name="unit"></param>
+        /// <returns>new Unit</returns>
         public static bool TryParse(string s, out Unit unit)
         {
             try
@@ -256,6 +272,14 @@ namespace MeasurementUnits
                 return false;
             }
         }
+        /// <summary>
+        /// Returns a new unit with the specified power. 
+        /// </summary>
+        /// <param name="power">power</param>
+        /// <exception>You can have only int powers. You cannot power m^3 with 0.5, because m^1.5 doesn't make sense
+        ///   <cref>DimensionSplitException</cref>
+        /// </exception>
+        /// <returns>new Unit</returns>
         public Unit Pow(double power)
         {
             Unit newUnit;
@@ -276,6 +300,11 @@ namespace MeasurementUnits
             }
             return newUnit;
         }
+        /// <summary>
+        /// Returns a new unit with the specified prefix
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <returns>new Unit</returns>
         public Unit ChangePrefix(Prefix prefix)
         {
             Unit newUnit;
@@ -337,9 +366,9 @@ namespace MeasurementUnits
             string unitString = "";
             if (baseOnly)
             {
-                unitString = Stringifier.MultipleUnitsToString(Unit.Multiply(Units.ToArray()).SelectMany(x => x), fancy, useDivisor);
+                unitString = Stringifier.MultipleUnitsToString(Multiply(Units.ToArray()).SelectMany(x => x), fancy, useDivisor);
             }
-            else if (string.IsNullOrEmpty(UnitName) && Units.Count() > 0)
+            else if (string.IsNullOrEmpty(UnitName) && Units.Any())
             {
                 unitString = Stringifier.MultipleUnitsToString(Units, fancy, useDivisor);
             }
@@ -378,7 +407,7 @@ namespace MeasurementUnits
         }
         public override int GetHashCode()
         {
-            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * (int)y.UnitName.GetHashCode() * y.Power);
+            return (int)Quantity * this.SelectMany(x => x).Aggregate(0, (x, y) => x + (int)y.Prefix * y.UnitName.GetHashCode() * y.Power);
         }
         public bool IsComparable(Unit u)
         {
@@ -388,12 +417,9 @@ namespace MeasurementUnits
                 {
                     return true;
                 }
-                else
-                {
-                    var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
-                    var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName });
-                    return a.Union(b).Any() && !a.Except(b).Any();
-                }
+                var a = Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName }).ToArray();
+                var b = u.Units.SelectMany(x => x).Select(x => new { x.Power, x.UnitName }).ToArray();
+                return a.Union(b).Any() && !a.Except(b).Any();
             }
             return false;
         }
@@ -490,24 +516,29 @@ namespace MeasurementUnits
             });
             return dict;
         }
-
+        /// <summary>
+        /// Checks wether a unit has a factor and returns its power. e.g. 'm/s^2' returns -2 with 's' as a parameter. Returns 0 if parameter is not its factor. 
+        /// </summary>
+        /// <param name="possibleFactor">The factor u want to check</param>
+        /// <returns>Power of the provided factor</returns>
         public int HasFactor(Unit possibleFactor)
         {
             var pfUnits = possibleFactor.SelectMany(x => x).ToList();
-            var tUnits = this.SelectMany(x=>x).ToList();
+            var tUnits = this.SelectMany(x => x).ToList();
             var pfPowers = new List<int>();
             foreach (var unit in pfUnits)
             {
                 try
                 {
-                    int pow = tUnits.First(x => x.UnitName == unit.UnitName).Power / unit.Power;
+                    Unit pBaseFactor = unit;
+                    int pow = tUnits.First(x => x.UnitName == pBaseFactor.UnitName).Power / unit.Power;
                     pfPowers.Add(pow);
                 }
                 catch { break; }
             }
-            if (pfPowers.Count == pfUnits.Count && pfPowers.Where(x => x != 0).Select(x => Math.Sign(x)).Distinct().Count() < 2)
+            if (pfPowers.Count == pfUnits.Count && pfPowers.Where(x => x != 0).Select(Math.Sign).Distinct().Count() < 2)
             {
-                return pfPowers.OrderBy(x => Math.Abs(x)).First();
+                return pfPowers.OrderBy(Math.Abs).First();
             }
             return 0;
         }

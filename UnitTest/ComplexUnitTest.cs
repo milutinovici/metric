@@ -31,12 +31,12 @@ namespace UnitTest
         [TestMethod]
         public void MultiplicationOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1kg" + Stringifier.dot + "m" + Stringifier.dot + "s" + Stringifier.SS(-1), (N * S).ToString());
+            Assert.AreEqual("1kg" + Stringifier.Dot + "m" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N * S).ToString());
         }
         [TestMethod]
         public void DivisionOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1N" + Stringifier.dot + "s" + Stringifier.SS(-1), (N / S).ToString());
+            Assert.AreEqual("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N / S).ToString());
         }
 
         [TestMethod]
@@ -102,7 +102,7 @@ namespace UnitTest
         public void ComplexDerivedUnit()
         {
             Unit c = (N / S);
-            Assert.AreEqual("1N" + Stringifier.dot + "s" + Stringifier.SS(-1), c.ToString());
+            Assert.AreEqual("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
         }
 
         [TestMethod]

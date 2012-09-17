@@ -26,9 +26,9 @@ namespace MeasurementUnits
         private static Unit Polynome(string s, bool numerator)
         {
             char dot;
-            char.TryParse(Stringifier.dot, out dot);
+            char.TryParse(Stringifier.Dot, out dot);
             var sUnits = s.Split('*', dot);
-            List<Unit> units = new List<Unit>();
+            var units = new List<Unit>();
             foreach (string singleUnit in sUnits)
             {
                 int pw = 1;
@@ -44,14 +44,7 @@ namespace MeasurementUnits
                 Unit u = LinearUnit(unit[0]);
                 units.Add(u.Pow(pw));
             }
-            if (units.Count == 1)
-            {
-                return units[0];
-            }
-            else
-            {
-                return Unit.Multiply(units.ToArray());
-            }
+            return units.Count == 1 ? units[0] : Unit.Multiply(units.ToArray());
         }
 
         private static Unit LinearUnit(string linearUnit)
@@ -66,7 +59,7 @@ namespace MeasurementUnits
                     u = Unit.GetBySymbol(test);
                     break;
                 }
-                catch { }
+                catch(InvalidOperationException) { }
             }
             if (u == null) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
             if (linearUnit.Length - test.Length == 1)
@@ -100,8 +93,8 @@ namespace MeasurementUnits
         }
         private static string Normalize(string s)
         {
-            s = s.Replace(Stringifier.minus, "-");
-            s = s.Replace(Stringifier.dot, "*");
+            s = s.Replace(Stringifier.Minus, "-");
+            s = s.Replace(Stringifier.Dot, "*");
             for (int i = 0; i < 10; i++)
             {
                 s = s.Replace(Stringifier.SS(i), i.ToString());

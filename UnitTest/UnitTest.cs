@@ -82,7 +82,7 @@ namespace UnitTest
         [TestMethod]
         public void GMultiplication()
         {
-            Assert.AreEqual("1m" + Stringifier.dot + "s", (M * S).ToString());
+            Assert.AreEqual("1m" + Stringifier.Dot + "s", (M * S).ToString());
         }
 
         [TestMethod]
