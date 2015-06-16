@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MeasurementUnits;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using MeasurementUnits;
+using Xunit;
 
 namespace UnitTest
 {
-    [TestClass]
     public class UnitTest
     {
         public Unit M { get; set; }
@@ -24,135 +18,134 @@ namespace UnitTest
             Sm2 = new Unit(BaseUnit.s, -2);
         }
 
-        [TestMethod]
+        [Fact]
         public void TestToString()
         {
-            Assert.AreEqual("1m", M.ToString());
+            Assert.Equal("1m", M.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void ToStringWithPrefix()
         {
-            Assert.AreEqual("1kg", Kg.ToString());
+            Assert.Equal("1kg", Kg.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void ToStringWithPrefixAndPower()
         {
-            Assert.AreEqual("1kg" + Stringifier.SS(2), Kg.Pow(2).ToString());
+            Assert.Equal("1kg" + Stringifier.SS(2), Kg.Pow(2).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void Addition()
         {
-            Assert.AreEqual("2m", (M + M).ToString());
+            Assert.Equal("2m", (M + M).ToString());
         }
 
-        [TestMethod]
-        [ExpectedException(typeof(GrandmothersAndFrogsException))]
+        [Fact]
         public void AdditionOfGrandmothersAndFrogs()
         {
-            var u = Kg + M;
+            Assert.Throws<GrandmothersAndFrogsException>(() => Kg + M);
         }
 
-        [TestMethod]
+        [Fact]
         public void SubstractionWithPrefix()
         {
-            Assert.AreEqual("0kg", (Kg - Kg).ToString());
+            Assert.Equal("0kg", (Kg - Kg).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void Powerment()
         {
-            Assert.AreEqual("1m" + Stringifier.SS(2), M.Pow(2).ToString());
+            Assert.Equal("1m" + Stringifier.SS(2), M.Pow(2).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void SelfMultiplication()
         {
-            Assert.AreEqual("1m" + Stringifier.SS(2), (M * M).ToString());
+            Assert.Equal("1m" + Stringifier.SS(2), (M * M).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void SelfDivision()
         {
-            Assert.AreEqual("1", (M / M).ToString());
+            Assert.Equal("1", (M / M).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void GMultiplication()
         {
-            Assert.AreEqual("1m" + Stringifier.Dot + "s", (M * S).ToString());
+            Assert.Equal("1m" + Stringifier.Dot + "s", (M * S).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void FindClosestPrefix()
         {
             var prfx = PrefixHelpers.FindClosestPrefix(-59);
-            Assert.AreEqual(Prefix.y, prfx);
+            Assert.Equal(Prefix.y, prfx);
         }
 
-        [TestMethod]
+        [Fact]
         public void ChangePrefixBase()
         {
             var m = new Unit(BaseUnit.m);
             var km = m.ChangePrefix(Prefix.k);
-            Assert.AreEqual("1km", km.ToString());
+            Assert.Equal("1km", km.ToString());
         }
-        [TestMethod]
+        [Fact]
         public void ChangePrefixDerived()
         {  
             var n = Unit.GetBySymbol("N");
             var mN = n.ChangePrefix(Prefix.m);
-            Assert.AreEqual("1mN", mN.ToString());
+            Assert.Equal("1mN", mN.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void NumberAddition()
         {
             var w = Unit.GetBySymbol("W");
             var nw = w + 100;
-            Assert.AreEqual("101W", nw.ToString());
+            Assert.Equal("101W", nw.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void NumberSubstraction()
         {
             var w = Unit.GetBySymbol("W");
             var nw = w - 100;
-            Assert.AreEqual("-99W", nw.ToString());
+            Assert.Equal("-99W", nw.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void NumberMultiplication()
         {
             var w = Unit.GetBySymbol("W");
             var nw = w * 100;
-            Assert.AreEqual("100W", nw.ToString());
+            Assert.Equal("100W", nw.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void NumberDivision()
         {
             var w = Unit.GetBySymbol("W");
             var nw =  100 / w;
-            Assert.AreEqual("100W^-1", nw.ToString("c"));
+            Assert.Equal("100W^-1", nw.ToString("c"));
         }
 
-        [TestMethod]
+        [Fact]
         public void ChooseRemainWithSmallestPower()
         {
             var w = Unit.GetBySymbol("W");
             var nw = w / S;
-            Assert.AreEqual("1W/s", nw.ToString("d"));
+            Assert.Equal("1W/s", nw.ToString("d"));
         }
 
-        [TestMethod]
+        [Fact]
         public void CompareTo()
         {
             var m = new Unit(999, BaseUnit.m);
             var km = new Unit(1, Prefix.k, BaseUnit.m);
-            Assert.AreEqual(-1, m.CompareTo(km));
+            Assert.Equal(-1, m.CompareTo(km));
         }
     }
 }

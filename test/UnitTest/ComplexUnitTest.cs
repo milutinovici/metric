@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using MeasurementUnits;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace UnitTest
 {
-    [TestClass]
     public class ComplexUnitTest
     {
         public Unit N { get; set; }
@@ -21,140 +16,139 @@ namespace UnitTest
             S = new Unit(BaseUnit.s);
         }
 
-        [TestMethod]
+        [Fact]
         public void IsAddableComplexWithDifferentPrefixes()
         {
             var kn = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            Assert.IsTrue(N.IsComparable(kn));
+            Assert.True(N.IsComparable(kn));
         }
 
-        [TestMethod]
+        [Fact]
         public void MultiplicationOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1kg" + Stringifier.Dot + "m" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N * S).ToString());
+            Assert.Equal("1kg" + Stringifier.Dot + "m" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N * S).ToString());
         }
-        [TestMethod]
+        [Fact]
         public void DivisionOfComplexAndBaseUnit()
         {
-            Assert.AreEqual("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N / S).ToString());
+            Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), (N / S).ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void DivisionOf2ComplexUnits()
         {
             var u = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -1));
             var u1 = N / u;
-            Assert.AreEqual("1s" + Stringifier.SS(-1), u1.ToString());
+            Assert.Equal("1s" + Stringifier.SS(-1), u1.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void HasFactorBaseUnit()
         {
             int power = N.HasFactor(S);
-            Assert.AreEqual(-2, power);
+            Assert.Equal(-2, power);
         }
 
-        [TestMethod]
+        [Fact]
         public void HasFactorComplexUnit()
         {
 
             int power = N.Pow(2).HasFactor(N);
-            Assert.AreEqual(2, power);
+            Assert.Equal(2, power);
         }
 
-        [TestMethod]
+        [Fact]
         public void HasFactorNegativeComplexUnit()
         {
             int power = N.HasFactor(N.Pow(-1));
-            Assert.AreEqual(-1, power);
+            Assert.Equal(-1, power);
         }
 
-        [TestMethod]
+        [Fact]
         public void RecognizeDerivedUnit()
         {
-            Assert.AreEqual("1N", N.ToString());
+            Assert.Equal("1N", N.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void RecognizeDerivedUnitWithPrefix()
         {
             var kn = new Unit(1, new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            Assert.AreEqual("1kN", kn.ToString());
+            Assert.Equal("1kN", kn.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void MultiplyDerivedUnits()
         {
             Unit c = N * N;
-            Assert.AreEqual("1N" + Stringifier.SS(2), c.ToString());
+            Assert.Equal("1N" + Stringifier.SS(2), c.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void MultiplyDerivedUnitsWithPrefix()
         {
             var kn = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(Prefix.k, BaseUnit.m), new Unit(BaseUnit.s, -2));
             var n = new Unit(new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m), new Unit(BaseUnit.s, -2));
             var c = n * kn;
-            Assert.AreEqual("10daN" + Stringifier.SS(2), c.ToString());
+            Assert.Equal("10daN" + Stringifier.SS(2), c.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void ComplexDerivedUnit()
         {
             Unit c = (N / S);
-            Assert.AreEqual("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
+            Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
         }
 
-        [TestMethod]
+        [Fact]
         public void PrefixTransferDown()
         {
             Unit n = new Unit(new Unit(BaseUnit.m), new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.s, -2));
             n = n.ChangePrefix(Prefix.m);
             var u = n.Units.First();
-            Assert.AreEqual(Prefix.m, n.Prefix);
+            Assert.Equal(Prefix.m, n.Prefix);
         }
 
-        [TestMethod]
+        [Fact]
         public void ParseDerivedUnitPoweredPrefixed()
         {
             string s = "1mV^-3";
             var u = Unit.Parse(s).Pow(-1);
-            Assert.AreEqual("1mV^3", u.ToString("c"));
+            Assert.Equal("1mV^3", u.ToString("c"));
         }
 
-        [TestMethod]
+        [Fact]
         public void RecognizeDerivedUnitWithPrefix2()
         {
             var u = new Unit(2, new Unit(Prefix.h, BaseUnit.g), new Unit(Prefix.M, BaseUnit.m), new Unit(BaseUnit.s, -2));
-            Assert.AreEqual("200kN", u.ToString());
+            Assert.Equal("200kN", u.ToString());
         }
-        [TestMethod]
+        [Fact]
         public void kWEquals1000W()
         {
             var w = new Unit(1000, new Unit(Prefix.k, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
             var kw = new Unit(1, new Unit(Prefix.M, BaseUnit.g), new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -3));
-            Assert.IsTrue(w.Equals(kw));
+            Assert.True(w.Equals(kw));
         }
-        [TestMethod]
+        [Fact]
         public void HasFactor()
         {
             int f1 = N.HasFactor(N.Pow(-1) / S);
             int f2 = N.HasFactor(N.Pow(-1) * S);
-            Assert.AreEqual(-1, f1);
-            Assert.AreEqual(0, f2);
+            Assert.Equal(-1, f1);
+            Assert.Equal(0, f2);
         }
-        [TestMethod]
+        [Fact]
         public void SquareRoot()
         {
             var u = N.Pow(2).Pow(0.5);
  
-            Assert.AreEqual("1N", u.ToString());
+            Assert.Equal("1N", u.ToString());
         }
-        [TestMethod]
-        [ExpectedException(typeof(DimensionSplitException))]
+        [Fact]
         public void DimensionSplit()
         {
-            N.Pow(0.5);
+            Assert.Throws<DimensionSplitException>(() => N.Pow(0.5));
         }
     }
 }

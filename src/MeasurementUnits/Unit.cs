@@ -2,11 +2,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 
 namespace MeasurementUnits
 {
@@ -15,11 +12,11 @@ namespace MeasurementUnits
     public sealed class Unit : IEnumerable<Unit>, IEquatable<Unit>, IComparable<Unit>, IComparable
     {
         #region Fields & Properties
-        private BaseUnit BaseUnit { get; set; } 
-        public int Power { get; private set; }
+        private BaseUnit BaseUnit { get;} 
+        public int Power { get; }
         public Prefix Prefix { get; private set; }
         public double Quantity { get; private set; }
-        public string UnitName { get; private set; }
+        public string UnitName { get; }
         public IList<Unit> Units { get; private set; }
         private bool Searched { get; set; }
         #region Derived Units
@@ -42,8 +39,8 @@ namespace MeasurementUnits
             
             new Unit(unitName : "C", units : new[] { new Unit(BaseUnit.s), new Unit(BaseUnit.A)}),
             new Unit(unitName :"Gy", units : new[] { new Unit(BaseUnit.m, 2), new Unit(BaseUnit.s, -2)}),
-            new Unit(unitName :"lx",units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
-            new Unit(unitName :"kat",units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
+            new Unit(unitName :"lx", units : new[] { new Unit(BaseUnit.m, -2), new Unit(BaseUnit.cd)}),
+            new Unit(unitName :"kat", units : new[] { new Unit(BaseUnit.s, -1), new Unit(BaseUnit.mol)}),
 
             //new Unit(unitName :"min",units : new[] { new Unit(60, BaseUnit.s) }),
         };
