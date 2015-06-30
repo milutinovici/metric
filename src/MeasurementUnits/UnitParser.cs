@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MeasurementUnits
 {
@@ -11,15 +12,18 @@ namespace MeasurementUnits
         internal static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
+            var digits = Regex.Split(s, @"[^0-9\.,]+").First(c => c != "." && c.Trim() != "");
+            double quantity = double.Parse(digits);
+            s = s.Substring(digits.Length, s.Length - digits.Length);
             s = ConvertSuperscript(s);
             var rational = s.Split('/');
             Unit numerator = Polynome(rational[0], true);
             if (rational.Length == 2)
             {
                 Unit denominator = Polynome(rational[1], false);
-                return Unit.Multiply(numerator, denominator);
+                return quantity * numerator * denominator;
             }
-            return numerator;
+            return quantity * numerator;
         }
 
         private static Unit Polynome(string s, bool numerator)
@@ -43,12 +47,12 @@ namespace MeasurementUnits
                 Unit u = LinearUnit(unit[0]);
                 units.Add(u.Pow(pw));
             }
-            return units.Count == 1 ? units[0] : Unit.Multiply(units.ToArray());
+            return units.Count == 1 ? units[0] : units.Aggregate((x,y) => x*y);
         }
 
         private static Unit LinearUnit(string linearUnit)
         {
-            Unit u = null;
+            Unit u = new Unit(0, 0);
             string test = linearUnit;
             for (int i = linearUnit.Length - 1; i >= 0; i--)
             {
@@ -58,9 +62,9 @@ namespace MeasurementUnits
                     u = Unit.GetBySymbol(test);
                     break;
                 }
-                catch(InvalidOperationException) { }
+                catch(KeyNotFoundException) { }
             }
-            if (u == null) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
+            if (u == new Unit(0, 0)) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
             if (linearUnit.Length - test.Length == 1)
             {
                 Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
@@ -71,15 +75,15 @@ namespace MeasurementUnits
         internal static string ConvertSuperscript(string value)
         {
             string normalized = Normalize(value);
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             bool added = false;
             foreach (char character in normalized)
             {
-                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(character);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                var category = CharUnicodeInfo.GetUnicodeCategory(character);
+                if (category != UnicodeCategory.NonSpacingMark)
                 {
                     if (character == '^') added = true;
-                    if ((unicodeCategory == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
+                    if ((category == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
                     {
                         stringBuilder.Append('^');
                         added = true;

@@ -985,6 +985,51 @@
         "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.ComponentModel.dll"
       ]
     },
+    "System.ComponentModel.Annotations/4.0.10-beta-22816": {
+      "serviceable": false,
+      "sha": "of+uHufZF62Feuge1uC38upLqDdNRqwr8royXillY4742v11C4mq993c1ePGgXDd6Yzl69cS6a4mo9vcY5kHqA==",
+      "frameworks": {
+        "DNX,Version=v4.5.1": {
+          "dependencies": {
+            "System.ComponentModel": "4.0.0-beta-22816",
+            "System.Runtime": "4.0.20-beta-22816"
+          },
+          "frameworkAssemblies": [
+            "mscorlib",
+            "System.ComponentModel.DataAnnotations"
+          ],
+          "runtimeAssemblies": [
+            "lib/net45/System.ComponentModel.Annotations.dll"
+          ],
+          "compileAssemblies": [
+            "lib/net45/System.ComponentModel.Annotations.dll"
+          ]
+        },
+        "DNXCore,Version=v5.0": {
+          "dependencies": {
+            "System.ComponentModel": "4.0.0-beta-22816",
+            "System.Runtime": "4.0.20-beta-22816"
+          },
+          "frameworkAssemblies": [],
+          "runtimeAssemblies": [
+            "lib/aspnetcore50/System.ComponentModel.Annotations.dll"
+          ],
+          "compileAssemblies": [
+            "lib/contract/System.ComponentModel.Annotations.dll"
+          ]
+        }
+      },
+      "files": [
+        "License.rtf",
+        "System.ComponentModel.Annotations.4.0.10-beta-22816.nupkg",
+        "System.ComponentModel.Annotations.4.0.10-beta-22816.nupkg.sha512",
+        "System.ComponentModel.Annotations.nuspec",
+        "lib/aspnetcore50/System.ComponentModel.Annotations.dll",
+        "lib/contract/System.ComponentModel.Annotations.dll",
+        "lib/net45/System.ComponentModel.Annotations.dll",
+        "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.ComponentModel.Annotations.dll"
+      ]
+    },
     "System.Console/4.0.0-beta-22816": {
       "serviceable": false,
       "sha": "Uq1C1DP7MYuE0qqIaI15k/k3r2IKX6A/suIboAkOCLYoiG4jhFfc0ECJVsiXWJEWf7o5xRA0cz+hi+awB5HugA==",
@@ -1612,57 +1657,6 @@
         "lib/contract/System.Linq.Expressions.dll",
         "lib/net45/System.Linq.Expressions.dll",
         "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Linq.Expressions.dll"
-      ]
-    },
-    "System.Linq.Parallel/4.0.0-beta-22816": {
-      "serviceable": false,
-      "sha": "og1AfTIyvX5v+42ElFISaoFWvqKy20F7g0Y6ew7oHsuCrG+1hoI/ikSKiK330NwEKpRW4wGI5Z9CZHAnwZS/4g==",
-      "frameworks": {
-        "DNX,Version=v4.5.1": {
-          "dependencies": {
-            "System.Collections": "4.0.10-beta-22816",
-            "System.Collections.Concurrent": "4.0.10-beta-22816",
-            "System.Linq": "4.0.0-beta-22816",
-            "System.Runtime": "4.0.20-beta-22816",
-            "System.Threading.Tasks": "4.0.10-beta-22816"
-          },
-          "frameworkAssemblies": [
-            "mscorlib",
-            "System.Core"
-          ],
-          "runtimeAssemblies": [
-            "lib/net45/System.Linq.Parallel.dll"
-          ],
-          "compileAssemblies": [
-            "lib/net45/System.Linq.Parallel.dll"
-          ]
-        },
-        "DNXCore,Version=v5.0": {
-          "dependencies": {
-            "System.Collections": "4.0.10-beta-22816",
-            "System.Collections.Concurrent": "4.0.10-beta-22816",
-            "System.Linq": "4.0.0-beta-22816",
-            "System.Runtime": "4.0.20-beta-22816",
-            "System.Threading.Tasks": "4.0.10-beta-22816"
-          },
-          "frameworkAssemblies": [],
-          "runtimeAssemblies": [
-            "lib/aspnetcore50/System.Linq.Parallel.dll"
-          ],
-          "compileAssemblies": [
-            "lib/contract/System.Linq.Parallel.dll"
-          ]
-        }
-      },
-      "files": [
-        "License.rtf",
-        "System.Linq.Parallel.4.0.0-beta-22816.nupkg",
-        "System.Linq.Parallel.4.0.0-beta-22816.nupkg.sha512",
-        "System.Linq.Parallel.nuspec",
-        "lib/aspnetcore50/System.Linq.Parallel.dll",
-        "lib/contract/System.Linq.Parallel.dll",
-        "lib/net45/System.Linq.Parallel.dll",
-        "lib/portable-wpa81+wp80+win80+net45+aspnetcore50/System.Linq.Parallel.dll"
       ]
     },
     "System.Net.Primitives/4.0.10-beta-22816": {

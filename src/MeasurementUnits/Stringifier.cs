@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Text;
 
 namespace MeasurementUnits
@@ -27,39 +25,6 @@ namespace MeasurementUnits
                     s.Append("^").Append(power);
             }
             return s.ToString();
-        }
-
-        internal static string MultipleUnitsToString(IEnumerable<Unit> units, bool fancy, bool useDivisor)
-        {
-            var name = new StringBuilder();
-            var multiplier = fancy ? Dot : "*";
-            var f = fancy ? "" : "c"; 
-            f += "i";
-            var group = units.GroupBy(x => Math.Sign(x.Power)).ToArray();
-            foreach (var unit in group.ElementAt(0))
-            {
-                name.Append(unit.ToString(f)).Append(multiplier);
-            }
-            if (group.Count() > 1)
-            {
-                if (useDivisor)
-                {
-                    foreach (var unit in group.ElementAt(1))
-                    {
-                        name.Append(unit.ToString(f)).Append(multiplier);
-                    }
-                }
-                else
-                {
-                    name.Remove(name.Length - 1, 1);
-                    name.Append("/");
-                    foreach (var unit in group.ElementAt(1))
-                    {
-                        name.Append(unit.Pow(-1).ToString(f)).Append(multiplier);
-                    }
-                }
-            }
-            return name.Remove(name.Length - 1, 1).ToString();
         }
 
         public static string SS(int power)

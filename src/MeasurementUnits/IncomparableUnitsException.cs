@@ -2,11 +2,11 @@
 
 namespace MeasurementUnits
 {
-    public class GrandmothersAndFrogsException : Exception
+    public class IncomparableUnitsException : Exception
     {
         public Unit GrandMother { get; }
         public object Frog { get; }
-        public GrandmothersAndFrogsException(Unit grandMother, object frog, string message)
+        public IncomparableUnitsException(Unit grandMother, object frog, string message)
             : base(message)
         {
             this.GrandMother = grandMother;
