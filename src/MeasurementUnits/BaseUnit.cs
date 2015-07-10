@@ -7,13 +7,14 @@ namespace MeasurementUnits
 
     public static class BaseHelpers
     {
-        public static BaseUnit GreatestCommonDenominator(BaseUnit a, BaseUnit b)
+        public static BaseUnit GCD(this BaseUnit a, BaseUnit b)
         {
-            return b == 0 ? a : GreatestCommonDenominator(b, (BaseUnit)((ulong)a % (ulong)b));
+            return b == 0 ? a : GCD(b, (BaseUnit)((ulong)a % (ulong)b));
         }
-        public static BaseUnit Divide(BaseUnit a, BaseUnit b)
+        public static Tuple<BaseUnit, BaseUnit> Divide(this BaseUnit a, BaseUnit b)
         {
-            return (BaseUnit)((ulong)a / (ulong)b);
+            var gcd = (ulong)a.GCD(b);
+            return Tuple.Create((BaseUnit)((ulong)a/gcd), (BaseUnit)((ulong)b/gcd));
         }
         
         public static IEnumerable<int> PrimeFactors(this BaseUnit unit)
@@ -36,7 +37,7 @@ namespace MeasurementUnits
         
         public static int HasFactor(this BaseUnit unit, BaseUnit factor)
         {
-            if (factor == 0)
+            if (factor == 0 || factor == (BaseUnit)1)
             {
                 return 0;
             }
@@ -60,11 +61,11 @@ namespace MeasurementUnits
                 var factorA = HasFactor(a, bas);
                 var factorB = HasFactor(b, bas);
 
-                average *= (ulong)bas.Pow((uint)Math.Abs(factorA - factorB));
+                average *= (ulong)bas.Pow(Math.Abs(factorA - factorB));
             }
             return (BaseUnit)average;
         }
-        public static BaseUnit Pow(this BaseUnit u, uint pow)
+        public static BaseUnit Pow(this BaseUnit u, int pow)
         {
             ulong ret = 1;
             ulong x = (ulong)u;
@@ -79,11 +80,11 @@ namespace MeasurementUnits
         }
         public static Tuple<BaseUnit, BaseUnit> Reduce(BaseUnit a, BaseUnit b)
         {
-            var gcd = BaseHelpers.GreatestCommonDenominator(a, b);
+            var gcd = (ulong)BaseHelpers.GCD(a, b);
 
             if(a != 0 && b != 0 && gcd != 0)
             {
-                return Tuple.Create(BaseHelpers.Divide(a , gcd), BaseHelpers.Divide(b , gcd));
+                return Tuple.Create((BaseUnit)((ulong)a / gcd), (BaseUnit)((ulong)b / gcd));
             }
             else 
             {

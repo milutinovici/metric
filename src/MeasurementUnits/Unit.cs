@@ -10,7 +10,7 @@ namespace MeasurementUnits
         BaseUnit Numerator { get; } 
         BaseUnit Denominator { get;}
         BaseUnit PositivePrefix { get; }
-        BaseUnit NegativePrefix { get; } 
+        BaseUnit NegativePrefix { get; set; }
         public double Quantity { get; }
         public string Symbol { get; }
 
@@ -44,45 +44,43 @@ namespace MeasurementUnits
         {
             if(power > 0)
             {
-                this.Numerator = baseUnit;
+                this.Numerator = baseUnit.Pow(power);
                 this.Denominator = (BaseUnit)1;
             }
             else
             {
                 this.Numerator = (BaseUnit)1;
-                this.Denominator = baseUnit;
+                this.Denominator = baseUnit.Pow(-power);
             }
-
-
             this.PositivePrefix = (BaseUnit)1;
             this.NegativePrefix = (BaseUnit)1;
+            
             this.Quantity = quantity;
             this.Symbol = baseUnit.ToString();
         }
         public Unit(double quantity, Prefix prefix, BaseUnit baseUnit, int power = 1)
             : this(quantity, baseUnit, power)
         {
-            if(prefix < 0) {
-                this.NegativePrefix = baseUnit.Pow((uint)prefix);
+            if(prefix < 0)
+            {
+                this.NegativePrefix = baseUnit.Pow(-(int)prefix);
             }
-            else {   
-                this.PositivePrefix = baseUnit.Pow((uint)prefix);
-            }    
-            
+            else
+            {
+                this.PositivePrefix = baseUnit.Pow((int)prefix);
+            }
+
         }
         
-        Unit(double quantity, BaseUnit numerator, BaseUnit denominator, BaseUnit positive, BaseUnit negative)
+        Unit(double quantity, BaseUnit numerator, BaseUnit denominator, BaseUnit positivePrefix, BaseUnit negativePrefix)
         {
             this.Quantity = quantity;
-
             var simplified = BaseHelpers.Reduce(numerator, denominator);
             this.Numerator = simplified.Item1;
             this.Denominator = simplified.Item2;
-            
-            simplified = BaseHelpers.Reduce(positive, negative); 
+            simplified = BaseHelpers.Reduce(positivePrefix, negativePrefix);
             this.PositivePrefix = simplified.Item1;
             this.NegativePrefix = simplified.Item2;
-            
             this.Symbol = numerator.ToString();            
         }
         
@@ -93,11 +91,15 @@ namespace MeasurementUnits
         /// <returns>Power of the provided factor</returns>
         public int HasFactor(Unit factor)
         {
-            var p = Math.Min(Numerator.HasFactor(factor.Numerator), Denominator.HasFactor(factor.Denominator));
-            var n = Math.Min(Numerator.HasFactor(factor.Denominator), Denominator.HasFactor(factor.Numerator));
-            //  Console.WriteLine(Numerator);
-            //  Console.WriteLine(factor.Numerator);
-            return p != 0 ? p : n;
+            var num = Numerator.HasFactor(factor.Numerator);
+            var den = Denominator.HasFactor(factor.Denominator);
+            var p = num == 0 ? den : Math.Min(num, den);
+            
+            num = Numerator.HasFactor(factor.Denominator);
+            den = Denominator.HasFactor(factor.Numerator);
+            var n = num == 0 ? den : Math.Min(num, den);
+                          
+            return p > n ? p : -n;
         }
         /// <summary>
         /// Returns a new unit with the specified power. 
@@ -111,19 +113,19 @@ namespace MeasurementUnits
         {
             if(power < 0)
             {
-                return new Unit(Math.Pow(Quantity, power), 
-                            Denominator.Pow((uint)power),
-                            Numerator.Pow((uint)power), 
-                            PositivePrefix, 
-                            NegativePrefix);
+                return new Unit(Math.Pow(Quantity, power),
+                                Denominator.Pow((int)-power),
+                                Numerator.Pow((int)-power),
+                                PositivePrefix,
+                                NegativePrefix);
             }
             else
             {
-                return new Unit(Math.Pow(Quantity, power), 
-                            Numerator.Pow((uint)power), 
-                            Denominator.Pow((uint)power), 
-                            PositivePrefix, 
-                            NegativePrefix);
+                return new Unit(Math.Pow(Quantity, power),
+                                Numerator.Pow((int)power), 
+                                Denominator.Pow((int)power),
+                                PositivePrefix,
+                                NegativePrefix);
             }
 
         }
@@ -149,7 +151,10 @@ namespace MeasurementUnits
             }
             else return 0;
         }
-        
+        private int Power10Difference(Prefix prefix)
+        {
+            return 1 * ((int)GetAggregatePrefix() - (int)prefix);
+        }
         private static IEnumerable<string> FindDerivedUnits(Unit unit, bool fancy, bool divisor)
         {
             var optimal = DerivedUnits
@@ -157,7 +162,6 @@ namespace MeasurementUnits
             .Where(x => x.Power != 0)
             .OrderByDescending(x => x.Unit.Sum(y => Math.Abs((decimal)y.Numerator * (ulong)y.Denominator)) * Math.Abs(x.Power))
             .FirstOrDefault();
-
             if(optimal != null)
             {
                 Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
@@ -232,8 +236,8 @@ namespace MeasurementUnits
         public Unit ChangePrefix(Prefix prefix)
         {
             int difference = (prefix - GetAggregatePrefix()) * 1;
-            double quantity = Quantity;
-            return new Unit(quantity, prefix, Numerator, 1);
+            double quantity = Quantity * Math.Pow(10, difference);
+            return new Unit(quantity, Numerator, Denominator, 0, 0);
         }
         private Unit NewQuantity(double quantity)
         {
@@ -243,7 +247,7 @@ namespace MeasurementUnits
         //  {
         //      return Power * ((int)Prefix - (int)prefix);
         //  }
-                public IEnumerator<Unit> GetEnumerator()
+        public IEnumerator<Unit> GetEnumerator()
         {
             var units = Enum.GetValues(typeof(BaseUnit));
             foreach (BaseUnit unit in units)
@@ -278,10 +282,11 @@ namespace MeasurementUnits
         }
         public override int GetHashCode()
         {
-            return (int)Quantity * Numerator.GetHashCode() 
-                                 / Denominator.GetHashCode() 
-                                 * PositivePrefix.GetHashCode() 
-                                 / NegativePrefix.GetHashCode();
+            return Quantity.GetHashCode() 
+                   * Numerator.GetHashCode() 
+                   * Denominator.GetHashCode() 
+                   * PositivePrefix.GetHashCode()
+                   * NegativePrefix.GetHashCode();
         }
         public bool IsComparable(Unit other)
         {
@@ -291,7 +296,7 @@ namespace MeasurementUnits
         {
             if (IsComparable(other))
             {
-                var power1 = (int)GetAggregatePrefix();
+                var power1 = (int)this.GetAggregatePrefix();
                 var power2 = (int)other.GetAggregatePrefix();
                 return (Math.Pow(10, power1) * Quantity).CompareTo(Math.Pow(10, power2) * other.Quantity);
             }
@@ -317,17 +322,17 @@ namespace MeasurementUnits
         public string ToString(string format)
         {
             format = format.ToLower();
-            string quantity = !format.Contains("i") ? Quantity.ToString() : ""; // ignore quantity
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
             bool baseOnly = format.Contains("b"); // base units only
-            string unitString = "";
+            //string unitString = "";
 
-            unitString = char.IsDigit(Symbol, 0) && Symbol[0] != '1' ? 
-                string.Join(fancy ? Stringifier.Dot : "*", this.SelectMany(x => x).Select(x => x.Symbol)) 
-                : Symbol;
-
-            return string.Format("{0}{1}", quantity, unitString);
+            //  unitString = char.IsDigit(Symbol, 0) && Symbol[0] != '1' ? 
+            //      string.Join(fancy ? Stringifier.Dot : "*", this.SelectMany(x => x).Select(x => x.Symbol)) 
+            //      : Symbol;
+            //unitString = string.Join("*", FindDerivedUnits(this, true, false));
+            //return $"{Quantity}{unitString}";
+            return $"Q:{Quantity},N:{Numerator},D:{Denominator},PP:{PositivePrefix},NP:{NegativePrefix}";
         }
         #region Operators
         public static Unit operator +(Unit u1)
@@ -336,7 +341,7 @@ namespace MeasurementUnits
         }
         public static Unit operator -(Unit u1)
         {
-            return u1.NewQuantity(u1.Quantity * (-1));
+            return u1.NewQuantity(-u1.Quantity);
         }
         public static Unit operator ++(Unit u1)
         {
@@ -351,9 +356,9 @@ namespace MeasurementUnits
             if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.GetAggregatePrefix(), u2.GetAggregatePrefix());
-                var quantity = u1.Quantity*Math.Pow(10, 0) +
-                               u2.Quantity*Math.Pow(10, 0);
-                var newUnit = new Unit(quantity, averagePrefix, u1.Numerator, 1);
+                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) +
+                               u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
+                var newUnit = new Unit(quantity, u1.Numerator, u1.Denominator, (BaseUnit)1, (BaseUnit)1);
                 return newUnit;
             }
             throw new IncomparableUnitsException(u1, u2, "You can't mix them. You just can't");
@@ -364,9 +369,9 @@ namespace MeasurementUnits
             if (u1.IsComparable(u2))
             {
                 var averagePrefix = PrefixHelpers.AveragePrefix(u1.GetAggregatePrefix(), u2.GetAggregatePrefix());
-                var quantity = u1.Quantity*Math.Pow(10, 0) -
-                               u2.Quantity*Math.Pow(10, 0);
-                var newUnit = new Unit(quantity, averagePrefix, u1.Numerator, 1);
+                var quantity = u1.Quantity * Math.Pow(10, u1.Power10Difference(averagePrefix)) -
+                               u2.Quantity * Math.Pow(10, u2.Power10Difference(averagePrefix));
+                var newUnit = new Unit(quantity, u1.Numerator, u1.Denominator, (BaseUnit)1, (BaseUnit)1);
                 return newUnit;
             }
             throw new IncomparableUnitsException(u1, u2, "You can't mix them. You just can't");
@@ -374,9 +379,13 @@ namespace MeasurementUnits
 
         public static Unit operator *(Unit u1, Unit u2)
         {
-            return new Unit(u1.Quantity * u2.Quantity, 
-                            (BaseUnit)((uint)u1.Numerator * (uint)u2.Numerator), 
-                            (BaseUnit)((uint)u1.Denominator * (uint)u2.Denominator), 
+            u1.PositivePrefix.PrimeFactors().Distinct();
+            var averagePrefix = PrefixHelpers.AveragePrefix(u1.GetAggregatePrefix(), u2.GetAggregatePrefix());
+            var power10 = u1.Power10Difference(averagePrefix) + u2.Power10Difference(averagePrefix);
+            var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, power10);
+            return new Unit(quantity,
+                            (BaseUnit)((ulong)u1.Numerator * (ulong)u2.Numerator), 
+                            (BaseUnit)((ulong)u1.Denominator * (ulong)u2.Denominator),
                             u1.PositivePrefix.AverageFactors(u2.PositivePrefix),
                             u1.NegativePrefix.AverageFactors(u2.NegativePrefix));
 
@@ -384,11 +393,14 @@ namespace MeasurementUnits
 
         public static Unit operator /(Unit u1, Unit u2)
         {
-            var numerator = (uint)u2.Numerator != 0 ? (BaseUnit)((uint)u1.Numerator / (uint)u2.Numerator) : u1.Numerator;
-            var denominator = (uint)u2.Denominator != 0 ? (BaseUnit)((uint)u1.Denominator / (uint)u2.Denominator) : u1.Denominator;
-            return new Unit(u1.Quantity / u2.Quantity, 
-                            numerator, 
-                            denominator, 
+            var numerator = u1.Numerator.Divide(u2.Numerator);
+            var denominator = u1.Denominator.Divide(u2.Denominator);
+            var averagePrefix = PrefixHelpers.AveragePrefix(u1.GetAggregatePrefix(), u2.GetAggregatePrefix());
+            var power10 = u1.Power10Difference(averagePrefix) - u2.Power10Difference(averagePrefix);
+            var quantity = u1.Quantity / u2.Quantity * Math.Pow(10, power10);
+            return new Unit(quantity,
+                            (BaseUnit)((ulong)numerator.Item1 * (ulong)denominator.Item2), 
+                            (BaseUnit)((ulong)denominator.Item1 * (ulong)numerator.Item2),
                             u1.PositivePrefix.AverageFactors(u2.PositivePrefix),
                             u1.NegativePrefix.AverageFactors(u2.NegativePrefix));
         }
