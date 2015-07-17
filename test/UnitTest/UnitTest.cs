@@ -60,12 +60,21 @@ namespace UnitTest
         }
 
         [Fact]
-        public void SubstractionWithPrefix()
+        public void SelfSubstractionWithPrefix()
         {
-            var k1= new Unit(0, BaseUnit.g);
+            var k1 = new Unit(0, BaseUnit.g);
             Assert.Equal(k1, (Kg - Kg));
         }
-
+        
+        [Fact]
+        public void DivisionWithPrefix()
+        {
+            var u1 = new Unit(4, Prefix.m, BaseUnit.m, 2);
+            var u2 = new Unit(2, Prefix.n, BaseUnit.m);
+            var r = u1/u2;
+            Assert.Equal(r, new Unit(2, Prefix.k, BaseUnit.m));
+        }
+        
         [Fact]
         public void Powerment()
         {
@@ -83,7 +92,7 @@ namespace UnitTest
         [Fact]
         public void SelfDivision()
         {
-            var one = new Unit(1, (BaseUnit)1);
+            var one = new Unit(1, 0);
             Assert.Equal(one, (M / M));
         }
         
@@ -93,13 +102,6 @@ namespace UnitTest
             var s2 = new Unit(1, BaseUnit.s, 2);
             var sm1 = new Unit(1, BaseUnit.s, -1);
             Assert.Equal(sm1.ToString(), (S / s2).ToString());
-        }
-
-        [Fact]
-        public void GMultiplication()
-        {
-            var ms = new Unit(1, (BaseUnit)((ulong)BaseUnit.m * (ulong)BaseUnit.s));
-            Assert.Equal(ms, (M * S));
         }
 
         [Fact]
@@ -113,8 +115,7 @@ namespace UnitTest
         public void ChangePrefixBase()
         {
             var m = new Unit(1, BaseUnit.m);
-            var km = m.ChangePrefix(Prefix.k);
-            System.Console.WriteLine(km);
+            var km = m.ChangePrefix(Prefix.k, BaseUnit.m);
             Assert.Equal(m, km);
             Assert.Equal(m.Quantity, km.Quantity * 1000);
         }

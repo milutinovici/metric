@@ -68,7 +68,7 @@ namespace MeasurementUnits
             if (linearUnit.Length - test.Length == 1)
             {
                 Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
-                u = u.ChangePrefix(px);
+                u = u.ChangePrefix(px, 0);
             }
             return u;
         }

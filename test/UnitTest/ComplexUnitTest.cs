@@ -26,15 +26,24 @@ namespace UnitTest
         public void MultiplicationOfComplexAndBaseUnit()
         {
             var u = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -1);
-            Assert.Equal(u.ToString(), (N * S).ToString());
+            Assert.Equal(u, (N * S));
         }
         [Fact]
-        public void DivisionOf2ComplexUnitsWithPrefixes()
+        public void ReductionOfUnitWithPrefix()
         {
             var u1 = new Unit(1, Prefix.k, BaseUnit.m) * new Unit(1, BaseUnit.s, -1);
             var u2 = new Unit(1, Prefix.m, BaseUnit.s, 2) * new Unit(1, BaseUnit.m, -1);
             var r = u1 * u2;
-            Assert.Equal(r.ToString(), new Unit(1, Prefix.m, BaseUnit.s).ToString());
+            Assert.Equal(r, new Unit(1, Prefix.m, BaseUnit.s));
+        }
+        
+        [Fact]
+        public void HasFactor()
+        {
+            var u1 = N.Pow(-1) / S;
+            var u2 = N.Pow(-1) * S;
+            Assert.Equal(-1, N.HasFactor(u1));
+            Assert.Equal(0, N.HasFactor(u2));
         }
 
         [Fact]
@@ -60,66 +69,59 @@ namespace UnitTest
         }
 
         [Fact]
-        public void RecognizeDerivedUnit()
-        {
-            Assert.Equal("1N", N.ToString());
-        }
-
-        [Fact]
-        public void RecognizeDerivedUnitWithPrefix()
-        {
-            var kn = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, Prefix.k, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
-            Assert.Equal("1kN", kn.ToString());
-        }
-
-        [Fact]
         public void MultiplyDerivedUnitsWithPrefix()
         {
             var kn = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, Prefix.k, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
             var n = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
             var c = n * kn;
-            Assert.Equal(10, c.Quantity);
-            Assert.Equal(Prefix.da, c.GetAggregatePrefix());
+            Assert.Equal(0.001, c.Quantity);
+            Assert.Equal(Prefix.k, c.GetPrefix(BaseUnit.g));
         }
-
-        [Fact]
-        public void ComplexDerivedUnit()
-        {
-            Unit c = (N / S);
-            Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
-        }
-
-        [Fact]
-        public void ParseDerivedUnitPoweredPrefixed()
-        {
-            string s = "1mV^-3";
-            var u = Unit.Parse(s).Pow(-1);
-            Assert.Equal("1mV^3", u.ToString("c"));
-        }
-
-        [Fact]
-        public void RecognizeDerivedUnitWithPrefix2()
-        {
-            var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
-            Assert.Equal("200kN", u.ToString());
-        }
+        
         [Fact]
         public void kWEquals1000W()
         {
             var w = new Unit(1000, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
-            //  //var kw = new Unit(1, Prefix.M, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
-            //  //System.Console.WriteLine(w);
-            //  //.Console.WriteLine(kw);
-            //  //Assert.True(w.Equals(kw));
+            var kw = new Unit(1, Prefix.M, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
+            Assert.Equal(w, kw);
         }
-        [Fact]
-        public void HasFactor()
-        {
-            var u1 = N.Pow(-1) / S;
-            var u2 = N.Pow(-1) * S;
-            Assert.Equal(-1, N.HasFactor(u1));
-            Assert.Equal(0, N.HasFactor(u2));
-        }
+        
+        //  [Fact]
+        //  public void RecognizeDerivedUnit()
+        //  {
+        //      Assert.Equal("1N", N.ToString());
+        //  }
+
+        //  [Fact]
+        //  public void RecognizeDerivedUnitWithPrefix()
+        //  {
+        //      var kn = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, Prefix.k, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
+        //      Assert.Equal("1kN", kn.ToString());
+        //  }
+        
+        //  [Fact]
+        //  public void ComplexDerivedUnit()
+        //  {
+        //      Unit c = (N / S);
+        //      Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
+        //  }
+
+        //  [Fact]
+        //  public void ParseDerivedUnitPoweredPrefixed()
+        //  {
+        //      string s = "1mV^-3";
+        //      var u = Unit.Parse(s).Pow(-1);
+        //      Assert.Equal("1mV^3", u.ToString("c"));
+        //  }
+
+        //  [Fact]
+        //  public void RecognizeDerivedUnitWithPrefix2()
+        //  {
+        //      var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
+        //      Assert.Equal("200kN", u.ToString());
+        //  }
+
+
 
     }
 }

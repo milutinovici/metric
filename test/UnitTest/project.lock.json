@@ -203,6 +203,42 @@
           "lib/net45/Newtonsoft.Json.dll": {}
         }
       },
+      "System.Globalization/4.0.10-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.0-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.1.0-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019",
+          "System.Resources.ResourceManager": "4.0.0-beta-23019",
+          "System.Globalization": "4.0.10-beta-23019",
+          "System.Runtime.Extensions": "4.0.10-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0-beta-23019": {},
+      "System.Runtime/4.0.20-beta-23019": {
+        "compile": {
+          "ref/dotnet/System.Runtime.dll": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.10-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Extensions.dll": {}
+        }
+      },
       "xunit/2.1.0-beta3-build3029": {
         "dependencies": {
           "xunit.core": "[2.1.0-beta3-build3029]",
@@ -944,6 +980,20 @@
         },
         "runtime": {
           "lib/DNXCore50/System.Net.Sockets.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.1.0-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019",
+          "System.Resources.ResourceManager": "4.0.0-beta-23019",
+          "System.Globalization": "4.0.10-beta-23019",
+          "System.Runtime.Extensions": "4.0.10-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Numerics.Vectors.dll": {}
         }
       },
       "System.ObjectModel/4.0.10-beta-23019": {
@@ -2200,6 +2250,18 @@
         "System.Net.Sockets.nuspec",
         "lib/DNXCore50/System.Net.Sockets.dll",
         "ref/dotnet/System.Net.Sockets.dll"
+      ]
+    },
+    "System.Numerics.Vectors/4.1.0-beta-23019": {
+      "sha512": "A0kIZ/FdnbeN7gWUc7CdIJKyW1hnYtMJU139rK8jVap1cX656/K+Z0nJtUhcGsNvqu7dFVQp91u9ff9S5Nz9qA==",
+      "files": [
+        "System.Numerics.Vectors.4.1.0-beta-23019.nupkg",
+        "System.Numerics.Vectors.4.1.0-beta-23019.nupkg.sha512",
+        "System.Numerics.Vectors.nuspec",
+        "lib/dotnet/System.Numerics.Vectors.dll",
+        "lib/net46/System.Numerics.Vectors.dll",
+        "ref/dotnet/System.Numerics.Vectors.dll",
+        "ref/net46/System.Numerics.Vectors.dll"
       ]
     },
     "System.ObjectModel/4.0.10-beta-23019": {

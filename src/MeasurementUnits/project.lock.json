@@ -2,7 +2,44 @@
   "locked": false,
   "version": -9996,
   "targets": {
-    "DNX,Version=v4.5.1": {},
+    "DNX,Version=v4.5.1": {
+      "System.Globalization/4.0.10-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.0-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Globalization.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.1.0-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019",
+          "System.Resources.ResourceManager": "4.0.0-beta-23019",
+          "System.Globalization": "4.0.10-beta-23019",
+          "System.Runtime.Extensions": "4.0.10-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Numerics.Vectors.dll": {}
+        }
+      },
+      "System.Resources.ResourceManager/4.0.0-beta-23019": {},
+      "System.Runtime/4.0.20-beta-23019": {
+        "compile": {
+          "ref/dotnet/System.Runtime.dll": {}
+        }
+      },
+      "System.Runtime.Extensions/4.0.10-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Runtime.Extensions.dll": {}
+        }
+      }
+    },
     "DNXCore,Version=v5.0": {
       "System.Collections/4.0.10-beta-23019": {
         "dependencies": {
@@ -60,6 +97,20 @@
         },
         "runtime": {
           "lib/dotnet/System.Linq.dll": {}
+        }
+      },
+      "System.Numerics.Vectors/4.1.0-beta-23019": {
+        "dependencies": {
+          "System.Runtime": "4.0.20-beta-23019",
+          "System.Resources.ResourceManager": "4.0.0-beta-23019",
+          "System.Globalization": "4.0.10-beta-23019",
+          "System.Runtime.Extensions": "4.0.10-beta-23019"
+        },
+        "compile": {
+          "ref/dotnet/System.Numerics.Vectors.dll": {}
+        },
+        "runtime": {
+          "lib/dotnet/System.Numerics.Vectors.dll": {}
         }
       },
       "System.Private.Uri/4.0.0-beta-23019": {
@@ -240,6 +291,18 @@
         "ref/win8/_._"
       ]
     },
+    "System.Numerics.Vectors/4.1.0-beta-23019": {
+      "sha512": "A0kIZ/FdnbeN7gWUc7CdIJKyW1hnYtMJU139rK8jVap1cX656/K+Z0nJtUhcGsNvqu7dFVQp91u9ff9S5Nz9qA==",
+      "files": [
+        "System.Numerics.Vectors.4.1.0-beta-23019.nupkg",
+        "System.Numerics.Vectors.4.1.0-beta-23019.nupkg.sha512",
+        "System.Numerics.Vectors.nuspec",
+        "lib/dotnet/System.Numerics.Vectors.dll",
+        "lib/net46/System.Numerics.Vectors.dll",
+        "ref/dotnet/System.Numerics.Vectors.dll",
+        "ref/net46/System.Numerics.Vectors.dll"
+      ]
+    },
     "System.Private.Uri/4.0.0-beta-23019": {
       "sha512": "LV9WVCQ8W3ivP/hvQlaHH0lZKZyoYcUYiRGVw7xw/q8yfo2ZvwIrleXcLemxQkCSrXy80c5QmT9ErvrlFQK+Nw==",
       "files": [
@@ -331,6 +394,20 @@
         "ref/win8/_._"
       ]
     },
+    "System.Runtime.Extensions/4.0.10-beta-23019": {
+      "sha512": "G1DElWXwzoQgAWMZX63gwgSMckcLnxA70xTwZTx/VmQQG2+kqDuUoFVywdBeC9yaba0xK2h7Q01+H4/FGDClSg==",
+      "files": [
+        "System.Runtime.Extensions.4.0.10-beta-23019.nupkg",
+        "System.Runtime.Extensions.4.0.10-beta-23019.nupkg.sha512",
+        "System.Runtime.Extensions.nuspec",
+        "lib/DNXCore50/System.Runtime.Extensions.dll",
+        "lib/net46/_._",
+        "lib/netcore50/System.Runtime.Extensions.dll",
+        "ref/dotnet/System.Runtime.Extensions.dll",
+        "ref/net46/_._",
+        "runtimes/win8-aot/lib/netcore50/System.Runtime.Extensions.dll"
+      ]
+    },
     "System.Text.Encoding/4.0.0-beta-23019": {
       "sha512": "3AKmu2GxeVRk3wrBLoZXN3EhMeToZpV9KB/fjOCJu3TXZGwT3x/GwXMK9S3giYFLppHABDuVSBM1X7/71ujf4Q==",
       "files": [
@@ -389,7 +466,9 @@
     }
   },
   "projectFileDependencyGroups": {
-    "": [],
+    "": [
+      "System.Numerics.Vectors >= 4.1.0-beta-23019"
+    ],
     "DNX,Version=v4.5.1": [],
     "DNXCore,Version=v5.0": [
       "System.Runtime >= 4.0.20-*",
