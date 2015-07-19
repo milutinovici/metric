@@ -1,4 +1,5 @@
 ﻿using MeasurementUnits;
+using System.Linq;
 using Xunit;
 
 namespace UnitTest
@@ -86,25 +87,39 @@ namespace UnitTest
             Assert.Equal(w, kw);
         }
         
-        //  [Fact]
-        //  public void RecognizeDerivedUnit()
-        //  {
-        //      Assert.Equal("1N", N.ToString());
-        //  }
-
-        //  [Fact]
-        //  public void RecognizeDerivedUnitWithPrefix()
-        //  {
-        //      var kn = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, Prefix.k, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
-        //      Assert.Equal("1kN", kn.ToString());
-        //  }
+        [Fact]
+        public void ComplexEnumeratesToBaseUnits()
+        {
+            var w = new Unit(20, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
+            var result = w.ToArray();
+            for (int i = 0; i < result.Length; i++)
+            {
+                System.Console.WriteLine(result[i]);
+            }
+            Assert.Equal(result.Length, 3);
+        }
         
-        //  [Fact]
-        //  public void ComplexDerivedUnit()
-        //  {
-        //      Unit c = (N / S);
-        //      Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
-        //  }
+        
+        [Fact]
+        public void RecognizeDerivedUnit()
+        {
+            var mn = new Unit(12, BaseUnit.m) * new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.s, -2);
+            Assert.Equal("12N", mn.ToString()); 
+        }
+
+        [Fact]
+        public void RecognizeDerivedUnitWithPrefix()
+        {
+            var mn = new Unit(5, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
+            Assert.Equal("5mN", mn.ToString());
+        }
+        
+        [Fact]
+        public void BaseAndDerivedUnit()
+        {
+            Unit c = (N / S);
+            Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
+        }
 
         //  [Fact]
         //  public void ParseDerivedUnitPoweredPrefixed()

@@ -17,25 +17,25 @@ namespace MeasurementUnits
 
         private static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit> 
         {
-            //  ["Ω"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -2),
-            //  ["V"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -1),
-            //  ["H"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s,-2) * new Unit(1, BaseUnit.A, -2),
-            //  ["Wb"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
+            ["Ω"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -2),
+            ["V"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -1),
+            ["H"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s,-2) * new Unit(1, BaseUnit.A, -2),
+            ["Wb"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
 
-            //  ["F"] = new Unit(1, Prefix.k, BaseUnit.g, -1) * new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.s, 4) * new Unit(1, BaseUnit.A, 2),
-            //  ["S"] = new Unit(1, Prefix.k, BaseUnit.g, -1) * new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.s, 3) * new Unit(1, BaseUnit.A, 2),
+            ["F"] = new Unit(1, Prefix.k, BaseUnit.g, -1) * new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.s, 4) * new Unit(1, BaseUnit.A, 2),
+            ["S"] = new Unit(1, Prefix.k, BaseUnit.g, -1) * new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.s, 3) * new Unit(1, BaseUnit.A, 2),
 
-            //  ["W"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3),
-            //  ["J"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
-            //  ["N"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2),
+            ["W"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3),
+            ["J"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
+            ["N"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2),
             
-            //  ["Pa"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, -1) * new Unit(1, BaseUnit.s, -2),
-            //  ["T"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
+            ["Pa"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, -1) * new Unit(1, BaseUnit.s, -2),
+            ["T"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
             
-            //  ["C"] = new Unit(1, BaseUnit.s) * new Unit(1, BaseUnit.A),
-            //  ["Gy"] = new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
-            //  ["lx"] = new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.cd),
-            //  ["kat"] = new Unit(1, BaseUnit.s, -1) * new Unit(1, BaseUnit.mol),
+            ["C"] = new Unit(1, BaseUnit.s) * new Unit(1, BaseUnit.A),
+            ["Gy"] = new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
+            ["lx"] = new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.cd),
+            ["kat"] = new Unit(1, BaseUnit.s, -1) * new Unit(1, BaseUnit.mol),
 
             //new Unit(60, BaseUnit.s),
         };
@@ -123,7 +123,7 @@ namespace MeasurementUnits
                 Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
                 var pow10 = PrefixHelpers.Power10(remainder.Quantity);
                 var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimal.Power);
-                var quantity = remainder.Quantity * Math.Pow(10, (int)prfx * optimal.Power);
+                var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimal.Power);
                 yield return Stringifier.UnitToString(prfx, optimal.Key, optimal.Power, fancy);
                 var rest = FindDerivedUnits(remainder.NewQuantity(quantity), fancy, divisor);
                 foreach(var r in  rest)
@@ -137,6 +137,7 @@ namespace MeasurementUnits
                 {
                     yield return Stringifier.UnitToString(0, 0.ToString(), 1, fancy);
                 }
+                yield return unit.Quantity.ToString();
             }
         }
         
@@ -322,17 +323,20 @@ namespace MeasurementUnits
             bool fancy = !format.Contains("c"); // common formmating 
             bool useDivisor = !format.Contains("d"); // use '/'
             bool baseOnly = format.Contains("b"); // base units only
-            //string unitString = "";
-
-            //  unitString = char.IsDigit(Symbol, 0) && Symbol[0] != '1' ? 
-            //      string.Join(fancy ? Stringifier.Dot : "*", this.SelectMany(x => x).Select(x => x.Symbol)) 
-            //      : Symbol;
-            //unitString = string.Join("*", FindDerivedUnits(this, true, false));
-            //return $"{Quantity}{unitString}";
-            var self = this;
+            if(baseOnly)
+            {
+                var self = this;
+                var p = Powers.Select((x,i) => self.Powers[i] != 0 ? Stringifier.UnitToString(self.Prefixes[i], ((BaseUnit)(i+1)).ToString(), self.Powers[i], fancy) : "").Where(x => x != "");
+                return $"{Quantity}{string.Join(Stringifier.Dot, p)}";
+            }
+            else
+            {
+                var array = FindDerivedUnits(this, fancy, useDivisor).ToArray();
+                return array.Last() + string.Join(fancy ? Stringifier.Dot : "*", array.Take(array.Length - 1));
+            }
             
-            var p = Powers.Select((x,i) => self.Powers[i] != 0 ? Stringifier.UnitToString(self.Prefixes[i], ((BaseUnit)(i+1)).ToString(), self.Powers[i], fancy) : "").Where(x => x != "");
-            return $"{Quantity}{string.Join(Stringifier.Dot, p)}";
+
+
         }
         #region Operators
         public static Unit operator +(Unit u1)
