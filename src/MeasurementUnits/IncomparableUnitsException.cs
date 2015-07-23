@@ -4,13 +4,13 @@ namespace MeasurementUnits
 {
     public class IncomparableUnitsException : Exception
     {
-        public Unit GrandMother { get; }
-        public object Frog { get; }
-        public IncomparableUnitsException(Unit grandMother, object frog, string message)
+        public Unit Unit1 { get; }
+        public Unit Unit2 { get; }
+        public IncomparableUnitsException(Unit grandMother, Unit frog, string message)
             : base(message)
         {
-            this.GrandMother = grandMother;
-            this.Frog = frog;
+            this.Unit1 = grandMother;
+            this.Unit2 = frog;
         }
     }
 }
