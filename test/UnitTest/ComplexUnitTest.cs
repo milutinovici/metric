@@ -90,7 +90,7 @@ namespace UnitTest
         [Fact]
         public void ChangePrefixDerived()
         {
-            var mv = Unit.GetBySymbol("V") / 1000;
+            var mv = Unit.Create("V") / 1000;
             Assert.Equal("1mV", mv.ToString());
         }
 
@@ -112,7 +112,7 @@ namespace UnitTest
         public void BaseAndDerivedUnit()
         {
             Unit c = (N / S);
-            Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
+            Assert.Equal("1N" + SingleUnit.Dot + "s" + SingleUnit.SS(-1), c.ToString());
         }
 
         [Fact]
@@ -120,6 +120,13 @@ namespace UnitTest
         {
             var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
             Assert.Equal("200kN", u.ToString());
+        }
+
+        [Fact]
+        public void WithDivisor()
+        {
+            var u = new Unit(1, Prefix.m, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
+            Assert.Equal("1mm/s^2", u.ToString("dc"));
         }
 
     }

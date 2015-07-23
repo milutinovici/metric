@@ -119,7 +119,7 @@ namespace MeasurementUnits
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns>new Unit</returns>
-        public static Unit GetBySymbol(string symbol)
+        public static Unit Create(string symbol)
         {
             BaseUnit bu;
             bool success = Enum.TryParse(symbol, out bu);
@@ -135,7 +135,7 @@ namespace MeasurementUnits
         /// <param name="prefix"></param>
         /// <param name="symbol"></param>
         /// <returns></returns>
-        public static Unit GetBySymbol(Prefix prefix, string symbol)
+        public static Unit Create(Prefix prefix, string symbol)
         {
             BaseUnit bu;
             bool success = Enum.TryParse(symbol, out bu);
@@ -267,22 +267,41 @@ namespace MeasurementUnits
         {
             format = format.ToLower();
             bool fancy = !format.Contains("c"); // common formmating 
-            bool useDivisor = !format.Contains("d"); // use '/'
+            bool useDivisor = format.Contains("d"); // use '/'
             bool baseOnly = format.Contains("b"); // base units only
-            if(baseOnly)
+
+            double quantity;
+            IEnumerable<SingleUnit> singles;
+            if (baseOnly)
             {
                 var self = this;
-                var p = Powers.Select((x,i) => self.Powers[i] != 0 ? Stringifier.UnitToString(self.Prefixes[i], ((BaseUnit)(i+1)).ToString(), self.Powers[i], fancy) : "").Where(x => x != "");
-                return $"{Quantity}{string.Join(Stringifier.Dot, p)}";
+                quantity = self.Quantity;
+                singles = Powers.Select((x, i) => new SingleUnit(self.Prefixes[i], ((BaseUnit)(i + 1)).ToString(), self.Powers[i])).Where(x => x.Power != 0);
             }
             else
             {
-                var array = FindDerivedUnits(this, fancy, useDivisor).ToArray();
-                return array.Last() + string.Join(fancy ? Stringifier.Dot : "*", array.Take(array.Length - 1));
+                singles = FindDerivedUnits(this, out quantity);
             }
+            if (useDivisor)
+            {
+                var group = singles.GroupBy(x => Math.Sign(x.Power));
+                if (group.Count() > 1)
+                {
+                    var numerator = string.Join(fancy ? SingleUnit.Dot : "*", group.First().Select(x => x.ToString(fancy)));
+                    var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
+                    return $"{quantity}{numerator}/{denominator}";
+                }
+                else if(group.First().First().Power < 0)
+                {
+                    var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
+                    return $"{quantity}/{denominator}";
+                }
+            }
+            return $"{quantity}{string.Join(fancy ? SingleUnit.Dot : "*", singles.Select(x => x.ToString(fancy)))}";
         }
-        private static IEnumerable<string> FindDerivedUnits(Unit unit, bool fancy, bool divisor)
+        private static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
         {
+            q = 1;
             var optimal = DerivedUnits
             .Select(derived => new { Key = derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
             .Where(x => x.Power != 0)
@@ -294,24 +313,17 @@ namespace MeasurementUnits
                 var pow10 = PrefixHelpers.Power10(remainder.Quantity);
                 var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimal.Power);
                 var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimal.Power);
-                yield return Stringifier.UnitToString(prfx, optimal.Key, optimal.Power, fancy);
-                var rest = FindDerivedUnits(remainder.NewQuantity(quantity), fancy, divisor);
-                foreach (var r in rest)
-                {
-                    yield return r;
-                }
+                return new[] { new SingleUnit(prfx, optimal.Key, optimal.Power) }
+                       .Concat(FindDerivedUnits(remainder.NewQuantity(quantity), out q));
             }
             else
             {
-                for (byte i = 0; i < unit.Powers.Length; i++)
+                q = unit.Quantity;
+                return unit.Powers.Select((x, i) =>
                 {
-                    if (unit.Powers[i] != 0)
-                    {
-                        var baseUnit = ((BaseUnit)(i + 1));
-                        yield return Stringifier.UnitToString(unit.GetPrefix(baseUnit), baseUnit.ToString(), unit.Powers[i], fancy);
-                    }
-                }
-                yield return unit.Quantity.ToString();
+                    var baseUnit = ((BaseUnit)(i + 1));
+                    return new SingleUnit(unit.GetPrefix(baseUnit), baseUnit.ToString(), unit.Powers[i]);
+                }).Where(x => x.Power != 0);
             }
         }
         private Unit NewQuantity(double quantity)

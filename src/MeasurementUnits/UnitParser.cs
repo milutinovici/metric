@@ -29,7 +29,7 @@ namespace MeasurementUnits
         private static Unit Polynome(string s, bool numerator)
         {
             char dot;
-            char.TryParse(Stringifier.Dot, out dot);
+            char.TryParse(SingleUnit.Dot, out dot);
             var sUnits = s.Split('*', dot);
             var units = new List<Unit>();
             foreach (string singleUnit in sUnits)
@@ -61,9 +61,9 @@ namespace MeasurementUnits
                     if (linearUnit.Length - test.Length == 1)
                     {
                         Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
-                        return Unit.GetBySymbol(px, test);
+                        return Unit.Create(px, test);
                     }
-                    else return Unit.GetBySymbol(test);
+                    else return Unit.Create(test);
                 }
             }
             throw new FormatException($"Unknown unit: '{linearUnit}'");
@@ -92,11 +92,11 @@ namespace MeasurementUnits
         }
         private static string Normalize(string s)
         {
-            s = s.Replace(Stringifier.Minus, "-");
-            s = s.Replace(Stringifier.Dot, "*");
+            s = s.Replace(SingleUnit.Minus, "-");
+            s = s.Replace(SingleUnit.Dot, "*");
             for (int i = 0; i < 10; i++)
             {
-                s = s.Replace(Stringifier.SS(i), i.ToString());
+                s = s.Replace(SingleUnit.SS(i), i.ToString());
             }
             return s;
         }
