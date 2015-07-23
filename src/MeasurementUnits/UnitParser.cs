@@ -52,25 +52,21 @@ namespace MeasurementUnits
 
         private static Unit LinearUnit(string linearUnit)
         {
-            Unit u = new Unit(0, 0);
             string test = linearUnit;
             for (int i = linearUnit.Length - 1; i >= 0; i--)
             {
                 test = linearUnit.Substring(i);
-                try
+                if(Unit.Exists(test))
                 {
-                    u = Unit.GetBySymbol(test);
-                    break;
+                    if (linearUnit.Length - test.Length == 1)
+                    {
+                        Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
+                        return Unit.GetBySymbol(px, test);
+                    }
+                    else return Unit.GetBySymbol(test);
                 }
-                catch(KeyNotFoundException) { }
             }
-            if (u == new Unit(0, 0)) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
-            if (linearUnit.Length - test.Length == 1)
-            {
-                Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
-                u = u.ChangePrefix(px, 0);
-            }
-            return u;
+            throw new FormatException($"Unknown unit: '{linearUnit}'");
         }
         internal static string ConvertSuperscript(string value)
         {

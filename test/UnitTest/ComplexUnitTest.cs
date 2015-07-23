@@ -86,20 +86,14 @@ namespace UnitTest
             var kw = new Unit(1, Prefix.M, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
             Assert.Equal(w, kw);
         }
-        
+
         [Fact]
-        public void ComplexEnumeratesToBaseUnits()
+        public void ChangePrefixDerived()
         {
-            var w = new Unit(20, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3);
-            var result = w.ToArray();
-            for (int i = 0; i < result.Length; i++)
-            {
-                System.Console.WriteLine(result[i]);
-            }
-            Assert.Equal(result.Length, 3);
+            var mv = Unit.GetBySymbol("V") / 1000;
+            Assert.Equal("1mV", mv.ToString());
         }
-        
-        
+
         [Fact]
         public void RecognizeDerivedUnit()
         {
@@ -121,22 +115,12 @@ namespace UnitTest
             Assert.Equal("1N" + Stringifier.Dot + "s" + Stringifier.SS(-1), c.ToString());
         }
 
-        //  [Fact]
-        //  public void ParseDerivedUnitPoweredPrefixed()
-        //  {
-        //      string s = "1mV^-3";
-        //      var u = Unit.Parse(s).Pow(-1);
-        //      Assert.Equal("1mV^3", u.ToString("c"));
-        //  }
-
-        //  [Fact]
-        //  public void RecognizeDerivedUnitWithPrefix2()
-        //  {
-        //      var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
-        //      Assert.Equal("200kN", u.ToString());
-        //  }
-
-
+        [Fact]
+        public void RecognizeDerivedUnitWithPrefix2()
+        {
+            var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
+            Assert.Equal("200kN", u.ToString());
+        }
 
     }
 }

@@ -170,5 +170,12 @@ namespace UnitTest
             Assert.Equal(u1.GetPrefix(BaseUnit.m), (Prefix)0);
         }
 
+        [Fact]
+        public void PrefixReduction1()
+        {
+            var u1 = new Unit(10, Prefix.k, BaseUnit.m) / new Unit(2, Prefix.k, BaseUnit.m);
+            Assert.Equal(u1.GetPrefix(BaseUnit.m), (Prefix)0);
+        }
+
     }
 }

@@ -7,13 +7,11 @@ namespace MeasurementUnits
 {
     public enum BaseUnit : sbyte { m = 1, g, s, A, K, cd, mol }
     
-    public struct Unit : IEnumerable<Unit>, IEquatable<Unit>, IComparable<Unit>, IComparable
+    public struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
     {
         sbyte[] Powers { get; } 
         Prefix[] Prefixes { get; }
         public double Quantity { get; }
-        public string Symbol { get; }
-
 
         private static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit> 
         {
@@ -49,7 +47,6 @@ namespace MeasurementUnits
                 this.Powers[(sbyte)baseUnit - 1] = power;
             }
             this.Quantity = quantity;
-            this.Symbol = baseUnit.ToString();
         }
         public Unit(double quantity, Prefix prefix, BaseUnit baseUnit, sbyte power = 1)
             : this(quantity, baseUnit, power)
@@ -57,15 +54,12 @@ namespace MeasurementUnits
             this.Prefixes[(sbyte)baseUnit - 1] = prefix;
 
         }
-        
         Unit(double quantity, Prefix[] prefixes, sbyte[] powers)
         {
             this.Quantity = quantity;
             this.Powers = powers;
-            this.Prefixes = prefixes;
-            this.Symbol = powers.ToString();          
+            this.Prefixes = prefixes;        
         }
-        
         /// <summary>
         /// Checks wether a unit has a factor and returns its power. e.g. 'm/s^2' returns -2 with 's' as a parameter. Returns 0 if parameter is not its factor. 
         /// </summary>
@@ -110,39 +104,18 @@ namespace MeasurementUnits
             var powers = Powers.Select(x => (sbyte)(x * power)).ToArray();
             return new Unit(Math.Pow(Quantity, power), Prefixes, powers);
         }
-
-        private static IEnumerable<string> FindDerivedUnits(Unit unit, bool fancy, bool divisor)
-        {
-            var optimal = DerivedUnits
-            .Select(derived => new  { Key = derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
-            .Where(x => x.Power != 0)
-            .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power))
-            .FirstOrDefault();
-            if(optimal != null)
-            {
-                Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
-                var pow10 = PrefixHelpers.Power10(remainder.Quantity);
-                var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimal.Power);
-                var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimal.Power);
-                yield return Stringifier.UnitToString(prfx, optimal.Key, optimal.Power, fancy);
-                var rest = FindDerivedUnits(remainder.NewQuantity(quantity), fancy, divisor);
-                foreach(var r in  rest)
-                {
-                    yield return r;
-                }
-            }
-            else
-            {
-                foreach(var bs in unit)
-                {
-                    yield return Stringifier.UnitToString(0, 0.ToString(), 1, fancy);
-                }
-                yield return unit.Quantity.ToString();
-            }
-        }
-        
         /// <summary>
-        /// Get a single Unit, base or derived, using the string specified
+        /// Checks whether a unit with a given symbol exists
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns>bool</returns>
+        public static bool Exists(string symbol)
+        {
+            BaseUnit bu;
+            return Enum.TryParse(symbol, out bu) || DerivedUnits.ContainsKey(symbol);
+        }
+        /// <summary>
+        /// Get a single Unit, base or derived, using the specified symbol
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns>new Unit</returns>
@@ -155,6 +128,27 @@ namespace MeasurementUnits
                 return new Unit(1, bu);
             }
             return DerivedUnits[symbol];
+        }
+        /// <summary>
+        /// Get a single prefixed Unit, base or derived, using the specified symbol
+        /// </summary>
+        /// <param name="prefix"></param>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        public static Unit GetBySymbol(Prefix prefix, string symbol)
+        {
+            BaseUnit bu;
+            bool success = Enum.TryParse(symbol, out bu);
+            if (success)
+            {
+                return new Unit(1, prefix, bu);
+            }
+            var powers = DerivedUnits[symbol].Powers;
+            var i = powers.Select((power, index) => new { power, index }).First(x => x.power == 1).index;
+            var prefixes = new Prefix[powers.Length];
+            DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
+            prefixes[i] += (sbyte)prefix;
+            return new Unit(1, prefixes, powers);
         }
         /// <summary>
         /// Parse specified string to Unit
@@ -184,7 +178,6 @@ namespace MeasurementUnits
                 return false;
             }
         }
-
         /// <summary>
         /// Returns a new unit with the specified prefix
         /// </summary>
@@ -193,79 +186,33 @@ namespace MeasurementUnits
         public Unit ChangePrefix(Prefix prefix, BaseUnit baseUnit)
         {
             int difference = ((sbyte)GetPrefix(baseUnit) - (sbyte)prefix) * GetPower(baseUnit);
-            var copy = new Prefix[7];
-            Prefixes.CopyTo(copy, 0);
-            copy[(sbyte)baseUnit - 1] = prefix;
+            var prefixes = new Prefix[Prefixes.Length];
+            Prefixes.CopyTo(prefixes, 0);
+            prefixes[(sbyte)baseUnit - 1] = prefix;
             double quantity = Quantity * Math.Pow(10, difference);
-            return new Unit(quantity, copy, Powers);
+            return new Unit(quantity, prefixes, Powers);
         }
+        /// <summary>
+        /// Get the prefix of the specified base unit
+        /// </summary>
+        /// <param name="baseUnit"></param>
+        /// <returns>Prefix</returns>
         public Prefix GetPrefix(BaseUnit baseUnit)
         {
-            return Prefixes[(sbyte)baseUnit - 1];
+            if (baseUnit > 0 && (sbyte)baseUnit < Powers.Length)
+                return Prefixes[(sbyte)baseUnit - 1];
+            else return 0;
         }
-        
+        /// <summary>
+        /// get the power of the specified base unit
+        /// </summary>
+        /// <param name="baseUnit"></param>
+        /// <returns>sbyte</returns>
         public sbyte GetPower(BaseUnit baseUnit)
         {
-            return Powers[(sbyte)baseUnit - 1];
-        }
-        private Unit NewQuantity(double quantity)
-        {
-            return new Unit(quantity, Prefixes, Powers);
-        }
-        private int Power10Difference(Unit other)
-        {
-            int diff = 0;
-            for (int i = 0; i < Prefixes.Length; i++)
-            {
-                if(Powers[i] != 0 && other.Powers[i] != 0)
-                {
-                    diff += (sbyte)Prefixes[i] * Powers[i] - (sbyte)other.Prefixes[i] * other.Powers[i];
-                }
-            }
-            return diff;
-        }
-        private Prefix[] PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
-        {
-            var result = new Prefix[Prefixes.Length];
-            diff1 = 0;
-            diff2 = 0;
-            for (int i = 0; i < Prefixes.Length; i++)
-            {
-                //reduction
-                if((multiplication == true && Powers[i] + other.Powers[i] == 0) || (multiplication == false && Powers[i] - other.Powers[i] == 0))
-                {
-                    result[i] = 0;
-                    diff2 += ((sbyte)result[i] - (sbyte)other.Prefixes[i]) * other.Powers[i];
-                    diff1 += ((sbyte)Prefixes[i] - (sbyte)result[i]) * Powers[i];
-                }
-                else if(Prefixes[i] != 0)
-                {
-                    result[i] = Prefixes[i];
-                    diff2 += ((sbyte)result[i] - (sbyte)other.Prefixes[i]) * other.Powers[i];
-                }
-                else
-                {
-                    result[i] = other.Prefixes[i];
-                    diff1 += ((sbyte)Prefixes[i] - (sbyte)result[i]) * Powers[i];
-                }
-            }
-            return result;
-        }
-        public IEnumerator<Unit> GetEnumerator()
-        {
-            var units = Enum.GetValues(typeof(BaseUnit));
-            foreach (BaseUnit unit in units)
-            {
-                var factor = this.HasFactor(new Unit(1, unit));
-                if(factor != 0)
-                {
-                    yield return new Unit(1, unit, factor);
-                }
-            }
-        }
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            if (baseUnit > 0 && (sbyte)baseUnit < Powers.Length)
+                return Powers[(sbyte)baseUnit - 1];
+            else return 0;
         }
         public override bool Equals(object obj)
         {
@@ -312,7 +259,6 @@ namespace MeasurementUnits
             }
             return CompareTo((Unit)obj);
         }
-
         public override string ToString()
         {
             return ToString("");
@@ -334,9 +280,82 @@ namespace MeasurementUnits
                 var array = FindDerivedUnits(this, fancy, useDivisor).ToArray();
                 return array.Last() + string.Join(fancy ? Stringifier.Dot : "*", array.Take(array.Length - 1));
             }
-            
-
-
+        }
+        private static IEnumerable<string> FindDerivedUnits(Unit unit, bool fancy, bool divisor)
+        {
+            var optimal = DerivedUnits
+            .Select(derived => new { Key = derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
+            .Where(x => x.Power != 0)
+            .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power))
+            .FirstOrDefault();
+            if (optimal != null)
+            {
+                Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
+                var pow10 = PrefixHelpers.Power10(remainder.Quantity);
+                var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimal.Power);
+                var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimal.Power);
+                yield return Stringifier.UnitToString(prfx, optimal.Key, optimal.Power, fancy);
+                var rest = FindDerivedUnits(remainder.NewQuantity(quantity), fancy, divisor);
+                foreach (var r in rest)
+                {
+                    yield return r;
+                }
+            }
+            else
+            {
+                for (byte i = 0; i < unit.Powers.Length; i++)
+                {
+                    if (unit.Powers[i] != 0)
+                    {
+                        var baseUnit = ((BaseUnit)(i + 1));
+                        yield return Stringifier.UnitToString(unit.GetPrefix(baseUnit), baseUnit.ToString(), unit.Powers[i], fancy);
+                    }
+                }
+                yield return unit.Quantity.ToString();
+            }
+        }
+        private Unit NewQuantity(double quantity)
+        {
+            return new Unit(quantity, Prefixes, Powers);
+        }
+        private int Power10Difference(Unit other)
+        {
+            int diff = 0;
+            for (int i = 0; i < Prefixes.Length; i++)
+            {
+                if (Powers[i] != 0 && other.Powers[i] != 0)
+                {
+                    diff += (sbyte)Prefixes[i] * Powers[i] - (sbyte)other.Prefixes[i] * other.Powers[i];
+                }
+            }
+            return diff;
+        }
+        private Prefix[] PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
+        {
+            var result = new Prefix[Prefixes.Length];
+            diff1 = 0;
+            diff2 = 0;
+            for (int i = 0; i < Prefixes.Length; i++)
+            {
+                //reduction
+                if ((multiplication == true && Powers[i] + other.Powers[i] == 0) || (multiplication == false && Powers[i] - other.Powers[i] == 0))
+                {
+                    result[i] = 0;
+                    diff2 += ((sbyte)result[i] - (sbyte)other.Prefixes[i]) * other.Powers[i];
+                    diff1 += ((sbyte)Prefixes[i] - (sbyte)result[i]) * Powers[i];
+                }
+                else if (Prefixes[i] != 0)
+                {
+                    result[i] = Prefixes[i];
+                    diff2 += ((sbyte)result[i] - (sbyte)other.Prefixes[i]) * other.Powers[i];
+                }
+                else
+                {
+                    result[i] = other.Prefixes[i];
+                    diff1 += ((sbyte)Prefixes[i] - (sbyte)result[i]) * Powers[i];
+                }
+            }
+            return result;
         }
         #region Operators
         public static Unit operator +(Unit u1)
