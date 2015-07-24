@@ -5,12 +5,12 @@ namespace MeasurementUnits
     public class IncomparableUnitsException : Exception
     {
         public Unit Unit1 { get; }
-        public Unit Unit2 { get; }
-        public IncomparableUnitsException(Unit grandMother, Unit frog, string message)
+        public object Unit2 { get; }
+        public IncomparableUnitsException(Unit u1, object u2, string message)
             : base(message)
         {
-            this.Unit1 = grandMother;
-            this.Unit2 = frog;
+            this.Unit1 = u1;
+            this.Unit2 = u2;
         }
     }
 }

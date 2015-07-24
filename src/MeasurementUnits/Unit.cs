@@ -73,7 +73,7 @@ namespace MeasurementUnits
                 if(factor.Powers[i] != 0)
                 {
                     sbyte temp = (sbyte)(Powers[i] / factor.Powers[i]);
-                    if(temp == 0)
+                    if(temp == 0 || (power.HasValue && Math.Sign(power.Value * temp) == -1))
                     {
                         return 0;
                     }
@@ -144,10 +144,10 @@ namespace MeasurementUnits
                 return new Unit(1, prefix, bu);
             }
             var powers = DerivedUnits[symbol].Powers;
-            var i = powers.Select((power, index) => new { power, index }).First(x => x.power == 1).index;
+            var pi = powers.Select((power, index) => new { power, index }).First(x => x.power == 1 || x.power == -1);
             var prefixes = new Prefix[powers.Length];
             DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
-            prefixes[i] += (sbyte)prefix;
+            prefixes[pi.index] += (sbyte)((sbyte)(prefix) / pi.power);
             return new Unit(1, prefixes, powers);
         }
         /// <summary>
@@ -302,11 +302,11 @@ namespace MeasurementUnits
         private static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
         {
             q = 1;
-            var optimal = DerivedUnits
+            var array = DerivedUnits
             .Select(derived => new { Key = derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
             .Where(x => x.Power != 0)
-            .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power))
-            .FirstOrDefault();
+            .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power)).ToArray();
+            var optimal = array.FirstOrDefault();
             if (optimal != null)
             {
                 Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
