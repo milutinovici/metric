@@ -119,7 +119,7 @@ namespace UnitTest
         public void RecognizeDerivedUnitWithPrefix2()
         {
             var u = new Unit(2, Prefix.h, BaseUnit.g) * new Unit(1, Prefix.M, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);
-            Assert.Equal("200kN", u.ToString());
+            Assert.Equal("0.2MN", u.ToString());
         }
 
         [Fact]

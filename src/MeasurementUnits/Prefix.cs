@@ -24,13 +24,14 @@ namespace MeasurementUnits
             Prefix prefix;
             if (absolutePower < 25)
             {
-                if (absolutePower % 3 == 0 || absolutePower < 3)
+                var mod = absolutePower % 3;
+                if (mod % 3 == 0 || absolutePower < 3)
                 {
                     prefix = (Prefix)powerOfTen;
                 }
                 else
                 {
-                    prefix = Enum.GetValues(typeof(Prefix)).Cast<Prefix>().Where(x => (int)x <= powerOfTen).Max();
+                    prefix = mod == 1 ? (Prefix)((absolutePower - 1) * Math.Sign(powerOfTen)) : (Prefix)((absolutePower + 1) * Math.Sign(powerOfTen));
                 }
             }
             else

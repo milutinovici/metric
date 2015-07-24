@@ -177,5 +177,12 @@ namespace UnitTest
             Assert.Equal(u1.GetPrefix(BaseUnit.m), (Prefix)0);
         }
 
+        [Fact]
+        public void PrefixedToString()
+        {
+            var u1 = new Unit(1, Prefix.k, BaseUnit.mol);
+            Assert.Equal("1kmol", u1.ToString());
+        }
+
     }
 }

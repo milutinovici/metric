@@ -199,7 +199,7 @@ namespace MeasurementUnits
         /// <returns>Prefix</returns>
         public Prefix GetPrefix(BaseUnit baseUnit)
         {
-            if (baseUnit > 0 && (sbyte)baseUnit < Powers.Length)
+            if (baseUnit > 0 && (sbyte)baseUnit <= Powers.Length)
                 return Prefixes[(sbyte)baseUnit - 1];
             else return 0;
         }
