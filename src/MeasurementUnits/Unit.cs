@@ -13,11 +13,11 @@ namespace MeasurementUnits
         Prefix[] Prefixes { get; }
         public double Quantity { get; }
 
-        private static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit> 
+        static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit>
         {
             ["Ω"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -2),
             ["V"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -1),
-            ["H"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s,-2) * new Unit(1, BaseUnit.A, -2),
+            ["H"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -2),
             ["Wb"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
 
             ["F"] = new Unit(1, Prefix.k, BaseUnit.g, -1) * new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.s, 4) * new Unit(1, BaseUnit.A, 2),
@@ -26,10 +26,10 @@ namespace MeasurementUnits
             ["W"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3),
             ["J"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
             ["N"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2),
-            
+
             ["Pa"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, -1) * new Unit(1, BaseUnit.s, -2),
             ["T"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.s, -2) * new Unit(1, BaseUnit.A, -1),
-            
+
             ["C"] = new Unit(1, BaseUnit.s) * new Unit(1, BaseUnit.A),
             ["Gy"] = new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -2),
             ["lx"] = new Unit(1, BaseUnit.m, -2) * new Unit(1, BaseUnit.cd),
@@ -144,11 +144,18 @@ namespace MeasurementUnits
                 return new Unit(1, prefix, bu);
             }
             var powers = DerivedUnits[symbol].Powers;
-            var pi = powers.Select((power, index) => new { power, index }).First(x => x.power == 1 || x.power == -1);
-            var prefixes = new Prefix[powers.Length];
-            DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
-            prefixes[pi.index] += (sbyte)((sbyte)(prefix) / pi.power);
-            return new Unit(1, prefixes, powers);
+            var pi = powers.Select((power, index) => new { power, index }).FirstOrDefault(x => x.power != 0 && (sbyte)prefix % x.power == 0);
+            if (pi != null)
+            {
+                var prefixes = new Prefix[powers.Length];
+                DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
+                prefixes[pi.index] += (sbyte)((sbyte)(prefix) / pi.power);
+                return new Unit(1, prefixes, powers);
+            }
+            else
+            {
+                return new Unit(Math.Pow(10, (sbyte)prefix), DerivedUnits[symbol].Prefixes, powers);
+            }
         }
         /// <summary>
         /// Parse specified string to Unit
@@ -199,8 +206,9 @@ namespace MeasurementUnits
         /// <returns>Prefix</returns>
         public Prefix GetPrefix(BaseUnit baseUnit)
         {
-            if (baseUnit > 0 && (sbyte)baseUnit <= Powers.Length)
-                return Prefixes[(sbyte)baseUnit - 1];
+            var index = (sbyte)baseUnit;
+            if (index > 0 && index <= Powers.Length)
+                return Prefixes[index - 1];
             else return 0;
         }
         /// <summary>
@@ -226,7 +234,7 @@ namespace MeasurementUnits
             if (IsComparable(other))
             {
                 var power = Power10Difference(other);
-                return Math.Pow(10, power) * Quantity == other.Quantity;
+                return Math.Abs(Math.Pow(10, power) * Quantity - other.Quantity) < double.Epsilon;
             }
             return false;
         }
@@ -299,7 +307,7 @@ namespace MeasurementUnits
             }
             return $"{quantity}{string.Join(fancy ? SingleUnit.Dot : "*", singles.Select(x => x.ToString(fancy)))}";
         }
-        private static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
+        static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
         {
             q = 1;
             var array = DerivedUnits
@@ -326,11 +334,11 @@ namespace MeasurementUnits
                 }).Where(x => x.Power != 0);
             }
         }
-        private Unit NewQuantity(double quantity)
+        Unit NewQuantity(double quantity)
         {
             return new Unit(quantity, Prefixes, Powers);
         }
-        private int Power10Difference(Unit other)
+        int Power10Difference(Unit other)
         {
             int diff = 0;
             for (int i = 0; i < Prefixes.Length; i++)
@@ -342,7 +350,7 @@ namespace MeasurementUnits
             }
             return diff;
         }
-        private Prefix[] PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
+        Prefix[] PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
         {
             var result = new Prefix[Prefixes.Length];
             diff1 = 0;

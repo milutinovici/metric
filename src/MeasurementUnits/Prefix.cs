@@ -9,15 +9,8 @@ namespace MeasurementUnits
         da = 1, h = 2, k = 3, M = 6, G = 9, T = 12, P = 15, E = 18, Z = 21, Y = 24
     }
 
-    internal static class PrefixHelpers
+    static class PrefixHelpers
     {
-        internal static Prefix AveragePrefix(params Prefix[] prefixes)
-        {
-            var average = prefixes.Average(x => (int)x);
-            var averagePrefix = average != 0 ? Enum.GetValues(typeof(Prefix)).Cast<Prefix>().First(x => (int)x >= average) : 0;
-            return averagePrefix;
-        }
-
         internal static Prefix FindClosestPrefix(int powerOfTen)
         {
             int absolutePower = Math.Abs(powerOfTen);
@@ -46,7 +39,7 @@ namespace MeasurementUnits
             int powerOfTen = 0;
             if (Math.Abs(quantity) > 1)
             {
-                while (quantity % 10 == 0)
+                while (Math.Abs(quantity % 10) < double.Epsilon)
                 {
                     powerOfTen++;
                     quantity /= 10;
@@ -54,7 +47,7 @@ namespace MeasurementUnits
             }
             else
             {
-                while (quantity % 1 != 0)
+                while (Math.Abs(quantity % 1) > double.Epsilon)
                 {
                     quantity *= 10;
                     powerOfTen--;

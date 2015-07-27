@@ -7,7 +7,7 @@ using System.Text.RegularExpressions;
 
 namespace MeasurementUnits
 {
-    internal class UnitParser
+    class UnitParser
     {
         internal static Unit Parse(string s)
         {
@@ -26,7 +26,7 @@ namespace MeasurementUnits
             return quantity * numerator;
         }
 
-        private static Unit Polynome(string s, bool numerator)
+        static Unit Polynome(string s, bool numerator)
         {
             char dot;
             char.TryParse(SingleUnit.Dot, out dot);
@@ -50,7 +50,7 @@ namespace MeasurementUnits
             return units.Count == 1 ? units[0] : units.Aggregate((x,y) => x*y);
         }
 
-        private static Unit LinearUnit(string linearUnit)
+        static Unit LinearUnit(string linearUnit)
         {
             string test = linearUnit;
             for (int i = linearUnit.Length - 1; i >= 0; i--)
@@ -68,7 +68,7 @@ namespace MeasurementUnits
             }
             throw new FormatException($"Unknown unit: '{linearUnit}'");
         }
-        internal static string ConvertSuperscript(string value)
+        static string ConvertSuperscript(string value)
         {
             string normalized = Normalize(value);
             var stringBuilder = new StringBuilder();
@@ -90,7 +90,7 @@ namespace MeasurementUnits
 
             return stringBuilder.ToString();
         }
-        private static string Normalize(string s)
+        static string Normalize(string s)
         {
             s = s.Replace(SingleUnit.Minus, "-");
             s = s.Replace(SingleUnit.Dot, "*");
