@@ -1,16 +1,34 @@
 ﻿using MeasurementUnits;
+using System;
 using Xunit;
 
 namespace UnitTest
 {
     public class UnitParserTest
     {
+
         [Fact]
         public void ParseBaseUnit()
         {
-            string s = "1m";
-            var u = Unit.Parse(s);
-            Assert.Equal(s, u.ToString());
+            var u1 = new Unit(12, BaseUnit.g);
+            var u2 = Unit.Parse("12g");
+            Assert.Equal(u1, u2);
+        }
+
+        [Fact]
+        public void ParsePrefixedBaseUnit()
+        {
+            var u1 = new Unit(12, Prefix.n, BaseUnit.m);
+            var u2 = Unit.Parse("12nm");
+            Assert.Equal(u1, u2);
+        }
+
+        [Fact]
+        public void ParsePoweredPrefixedBaseUnit()
+        {
+            var u1 = new Unit(12, Prefix.n, BaseUnit.m, -4);
+            var u2 = Unit.Parse("12nm^-4");
+            Assert.Equal(u1, u2);
         }
 
         [Fact]
@@ -22,19 +40,18 @@ namespace UnitTest
         }
 
         [Fact]
-        public void ParseBaseUnitPrefixed()
-        {
-            string s = "1km";
-            var u = Unit.Parse(s);
-            Assert.Equal(s, u.ToString());
-        }
-
-        [Fact]
         public void ParseBaseUnitPrefixedPowered()
         {
             string s = "1km^3";
             var u = Unit.Parse(s);
             Assert.Equal(s, u.ToString("c"));
+        }
+
+        [Fact]
+        public void ParseNonexistantUnit()
+        {
+            string s = "13mZ^2";
+            Assert.Throws<FormatException>(() => Unit.Parse(s));
         }
 
         [Fact]
@@ -94,11 +111,27 @@ namespace UnitTest
         }
 
         [Fact]
-        public void ParseDerivedUnitPrefixed()
+        public void ParseDerivedUnitPrefixed1()
         {
             string s = "1mV";
             var u = Unit.Parse(s);
             Assert.Equal(s, u.ToString());
+        }
+
+        [Fact]
+        public void ParseDerivedUnitPrefixed2()
+        {
+            string s = "13mF";
+            var u = Unit.Parse(s);
+            Assert.Equal("13mF", u.ToString());
+        }
+
+        [Fact]
+        public void ParseDerivedUnitPrefixed3()
+        {
+            string s = "13mGy";
+            var u = Unit.Parse(s);
+            Assert.Equal("13mGy", u.ToString());
         }
 
         [Fact]
@@ -112,7 +145,7 @@ namespace UnitTest
         [Fact]
         public void ParseDerivedComplexUnitPoweredPrefixed()
         {
-            string s = "1K*mV^-2";
+            string s = "1mV^-2*K";
             var u = Unit.Parse(s);
             Assert.Equal(s, u.ToString("c"));
         }
@@ -142,20 +175,12 @@ namespace UnitTest
         }
 
         [Fact]
-        public void ConvertSuperscript()
-        {
-            string s = "MT" + Stringifier.SS(2);
-            var normal = UnitParser.ConvertSuperscript(s);
-            Assert.Equal("MT^2", normal);
-        }
-
-        [Fact]
         public void ParseMixed()
         {
-            string s = "12kmol^-1*MT^-2";
+            string s = "12MT^-2*kmol^-1";
             var u = Unit.Parse(s);
             Assert.Equal(s, u.ToString("c"));
         }
- 
+
     }
 }

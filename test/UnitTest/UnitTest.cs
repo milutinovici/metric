@@ -5,77 +5,100 @@ namespace UnitTest
 {
     public class UnitTest
     {
-        public Unit M { get; set; }
-        public Unit Kg { get; set; }
-        public Unit S { get; set; }
-        public Unit Sm2 { get; set; }
-
-        public UnitTest()
+        [Fact]
+        public void HasNegativeFactor()
         {
-            M = new Unit(BaseUnit.m);
-            Kg = new Unit(Prefix.k, BaseUnit.g, 1);
-            S = new Unit(BaseUnit.s);
-            Sm2 = new Unit(BaseUnit.s, -2);
+            var u1 = new Unit(2, BaseUnit.s, -2);
+            var u2 = new Unit(1, BaseUnit.s);
+            Assert.Equal(-2, u1.HasFactor(u2));
         }
 
         [Fact]
-        public void TestToString()
+        public void EqualityBaseUnit()
         {
-            Assert.Equal("1m", M.ToString());
+            var u1 = new Unit(1, BaseUnit.m);
+            var u2 = new Unit(1, BaseUnit.m);
+            Assert.Equal(u1, u2);
         }
-
         [Fact]
-        public void ToStringWithPrefix()
+        public void CompareToBaseUnit()
         {
-            Assert.Equal("1kg", Kg.ToString());
+            var u1 = new Unit(2, BaseUnit.m);
+            var u2 = new Unit(1, BaseUnit.m);
+            Assert.Equal(1, u1.CompareTo(u2));
         }
-
         [Fact]
-        public void ToStringWithPrefixAndPower()
+        public void CompareToWithPrefix()
         {
-            Assert.Equal("1kg" + Stringifier.SS(2), Kg.Pow(2).ToString());
+            var m = new Unit(999, BaseUnit.m);
+            var km = new Unit(1, Prefix.k, BaseUnit.m);
+            Assert.Equal(-1, m.CompareTo(km));
         }
 
         [Fact]
         public void Addition()
         {
-            Assert.Equal("2m", (M + M).ToString());
+            var u1 = new Unit(1, BaseUnit.m);
+            var u2 = new Unit(2, BaseUnit.m);
+            Assert.Equal(u2.Quantity, (u1 + u1).Quantity);
         }
 
         [Fact]
-        public void AdditionOfGrandmothersAndFrogs()
+        public void AdditionOfIncomparableUnits()
         {
-            Assert.Throws<GrandmothersAndFrogsException>(() => Kg + M);
+            var u1 = new Unit(1, BaseUnit.g);
+            var u2 = new Unit(2, BaseUnit.mol);
+            Assert.Throws<IncomparableUnitsException>(() => u1 + u2);
         }
 
         [Fact]
-        public void SubstractionWithPrefix()
+        public void SelfSubstractionWithPrefix()
         {
-            Assert.Equal("0kg", (Kg - Kg).ToString());
+            var u1 = new Unit(3, Prefix.k, BaseUnit.g);
+            var u2 = new Unit(0, BaseUnit.g);
+            Assert.Equal(u2, (u1 - u1));
         }
-
+        
+        [Fact]
+        public void DivisionWithPrefix()
+        {
+            var u1 = new Unit(4, Prefix.m, BaseUnit.m, 2);
+            var u2 = new Unit(2, Prefix.n, BaseUnit.m);
+            var r = u1/u2;
+            Assert.Equal(r, new Unit(2, Prefix.k, BaseUnit.m));
+        }
+        
         [Fact]
         public void Powerment()
         {
-            Assert.Equal("1m" + Stringifier.SS(2), M.Pow(2).ToString());
+            var u1 = new Unit(1, BaseUnit.m);
+            var u2 = new Unit(1, BaseUnit.m, -2);
+            Assert.Equal(u2, u1.Pow(-2));
         }
 
         [Fact]
         public void SelfMultiplication()
         {
-            Assert.Equal("1m" + Stringifier.SS(2), (M * M).ToString());
+            var u1 = new Unit(2, BaseUnit.m);
+            var u2 = new Unit(4, BaseUnit.m, 2);
+            Assert.Equal(u2, u1 * u1);
         }
 
         [Fact]
         public void SelfDivision()
         {
-            Assert.Equal("1", (M / M).ToString());
+            var u1 = new Unit(4, BaseUnit.m);
+            var one = new Unit(1, 0);
+            Assert.Equal(one, (u1 / u1));
         }
-
+        
         [Fact]
-        public void GMultiplication()
+        public void Division()
         {
-            Assert.Equal("1m" + Stringifier.Dot + "s", (M * S).ToString());
+            var u1 = new Unit(1, BaseUnit.s);
+            var u2 = new Unit(1, BaseUnit.s, 2);
+            var sm1 = new Unit(1, BaseUnit.s, -1);
+            Assert.Equal(sm1, (u1 / u2));
         }
 
         [Fact]
@@ -88,64 +111,78 @@ namespace UnitTest
         [Fact]
         public void ChangePrefixBase()
         {
-            var m = new Unit(BaseUnit.m);
-            var km = m.ChangePrefix(Prefix.k);
-            Assert.Equal("1km", km.ToString());
-        }
-        [Fact]
-        public void ChangePrefixDerived()
-        {  
-            var n = Unit.GetBySymbol("N");
-            var mN = n.ChangePrefix(Prefix.m);
-            Assert.Equal("1mN", mN.ToString());
+            var m = new Unit(1, BaseUnit.m);
+            var km = m.ChangePrefix(Prefix.k, BaseUnit.m);
+            Assert.Equal(m, km);
+            Assert.Equal(m.Quantity, km.Quantity * 1000);
         }
 
         [Fact]
         public void NumberAddition()
         {
-            var w = Unit.GetBySymbol("W");
-            var nw = w + 100;
-            Assert.Equal("101W", nw.ToString());
+            var u1 = new Unit(1, BaseUnit.K);
+            var u2 = u1 + 100;
+            Assert.Equal(u2.Quantity, 101);
         }
 
         [Fact]
         public void NumberSubstraction()
         {
-            var w = Unit.GetBySymbol("W");
-            var nw = w - 100;
-            Assert.Equal("-99W", nw.ToString());
+            var u1 = new Unit(1, BaseUnit.K);
+            var u2 = u1 - 100;
+            Assert.Equal(u2.Quantity, -99);
         }
 
         [Fact]
         public void NumberMultiplication()
         {
-            var w = Unit.GetBySymbol("W");
-            var nw = w * 100;
-            Assert.Equal("100W", nw.ToString());
+            var u1 = new Unit(5, BaseUnit.K);
+            var u2 = u1 * 4;
+            Assert.Equal(u2.Quantity, 20);
         }
 
         [Fact]
         public void NumberDivision()
         {
-            var w = Unit.GetBySymbol("W");
-            var nw =  100 / w;
-            Assert.Equal("100W^-1", nw.ToString("c"));
+            var u1 = new Unit(1, BaseUnit.m);
+            var u2 =  100 / u1;
+            Assert.Equal(new Unit(100, BaseUnit.m, -1), u2);
+        }
+        
+        [Fact]
+        public void SquareRoot()
+        {
+            var u1 = new Unit(9, BaseUnit.m, 2);
+            var result = u1.Pow(0.5);
+            Assert.Equal(new Unit(3, BaseUnit.m), result);
+        }
+        [Fact]
+        public void DimensionSplit()
+        {
+            var u1 = new Unit(1, BaseUnit.m);
+            Assert.Throws<DimensionSplitException>(() => u1.Pow(0.5));
+        }
+        
+        [Fact]
+        public void PrefixReduction()
+        {
+            var u1 = new Unit(10, Prefix.k, BaseUnit.m) / new Unit(2, Prefix.k, BaseUnit.m);
+            Assert.Equal(u1.GetPrefix(BaseUnit.m), (Prefix)0);
         }
 
         [Fact]
-        public void ChooseRemainWithSmallestPower()
+        public void PrefixReduction1()
         {
-            var w = Unit.GetBySymbol("W");
-            var nw = w / S;
-            Assert.Equal("1W/s", nw.ToString("d"));
+            var u1 = new Unit(10, Prefix.k, BaseUnit.m) / new Unit(2, Prefix.k, BaseUnit.m);
+            Assert.Equal(u1.GetPrefix(BaseUnit.m), (Prefix)0);
         }
 
         [Fact]
-        public void CompareTo()
+        public void PrefixedToString()
         {
-            var m = new Unit(999, BaseUnit.m);
-            var km = new Unit(1, Prefix.k, BaseUnit.m);
-            Assert.Equal(-1, m.CompareTo(km));
+            var u1 = new Unit(1, Prefix.k, BaseUnit.mol);
+            Assert.Equal("1kmol", u1.ToString());
         }
+
     }
 }

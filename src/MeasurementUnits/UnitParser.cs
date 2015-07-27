@@ -3,29 +3,33 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace MeasurementUnits
 {
-    internal class UnitParser
+    class UnitParser
     {
         internal static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
+            var digits = Regex.Split(s, @"[^0-9\.,]+").First(c => c != "." && c.Trim() != "");
+            double quantity = double.Parse(digits);
+            s = s.Substring(digits.Length, s.Length - digits.Length);
             s = ConvertSuperscript(s);
             var rational = s.Split('/');
             Unit numerator = Polynome(rational[0], true);
             if (rational.Length == 2)
             {
                 Unit denominator = Polynome(rational[1], false);
-                return Unit.Multiply(numerator, denominator);
+                return quantity * numerator * denominator;
             }
-            return numerator;
+            return quantity * numerator;
         }
 
-        private static Unit Polynome(string s, bool numerator)
+        static Unit Polynome(string s, bool numerator)
         {
             char dot;
-            char.TryParse(Stringifier.Dot, out dot);
+            char.TryParse(SingleUnit.Dot, out dot);
             var sUnits = s.Split('*', dot);
             var units = new List<Unit>();
             foreach (string singleUnit in sUnits)
@@ -43,43 +47,39 @@ namespace MeasurementUnits
                 Unit u = LinearUnit(unit[0]);
                 units.Add(u.Pow(pw));
             }
-            return units.Count == 1 ? units[0] : Unit.Multiply(units.ToArray());
+            return units.Count == 1 ? units[0] : units.Aggregate((x,y) => x*y);
         }
 
-        private static Unit LinearUnit(string linearUnit)
+        static Unit LinearUnit(string linearUnit)
         {
-            Unit u = null;
             string test = linearUnit;
             for (int i = linearUnit.Length - 1; i >= 0; i--)
             {
                 test = linearUnit.Substring(i);
-                try
+                if(Unit.Exists(test))
                 {
-                    u = Unit.GetBySymbol(test);
-                    break;
+                    if (linearUnit.Length - test.Length == 1)
+                    {
+                        Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
+                        return Unit.Create(px, test);
+                    }
+                    else return Unit.Create(test);
                 }
-                catch(InvalidOperationException) { }
             }
-            if (u == null) throw new FormatException("What is this '" + linearUnit + "' you are referring to? I have never heard of it.");
-            if (linearUnit.Length - test.Length == 1)
-            {
-                Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
-                u = u.ChangePrefix(px);
-            }
-            return u;
+            throw new FormatException($"Unknown unit: '{linearUnit}'");
         }
-        internal static string ConvertSuperscript(string value)
+        static string ConvertSuperscript(string value)
         {
             string normalized = Normalize(value);
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             bool added = false;
             foreach (char character in normalized)
             {
-                UnicodeCategory unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(character);
-                if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+                var category = CharUnicodeInfo.GetUnicodeCategory(character);
+                if (category != UnicodeCategory.NonSpacingMark)
                 {
                     if (character == '^') added = true;
-                    if ((unicodeCategory == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
+                    if ((category == UnicodeCategory.DecimalDigitNumber || character == '-') && !added)
                     {
                         stringBuilder.Append('^');
                         added = true;
@@ -90,13 +90,13 @@ namespace MeasurementUnits
 
             return stringBuilder.ToString();
         }
-        private static string Normalize(string s)
+        static string Normalize(string s)
         {
-            s = s.Replace(Stringifier.Minus, "-");
-            s = s.Replace(Stringifier.Dot, "*");
+            s = s.Replace(SingleUnit.Minus, "-");
+            s = s.Replace(SingleUnit.Dot, "*");
             for (int i = 0; i < 10; i++)
             {
-                s = s.Replace(Stringifier.SS(i), i.ToString());
+                s = s.Replace(SingleUnit.SS(i), i.ToString());
             }
             return s;
         }
