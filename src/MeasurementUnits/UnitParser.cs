@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 
 namespace MeasurementUnits
 {
@@ -12,7 +11,7 @@ namespace MeasurementUnits
         internal static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-            var digits = Regex.Split(s, @"[^0-9\.,]+").First(c => c != "." && c.Trim() != "");
+            var digits = new string(s.ToCharArray().TakeWhile(x => char.IsDigit(x) || char.IsPunctuation(x)).ToArray());
             double quantity = double.Parse(digits);
             s = s.Substring(digits.Length, s.Length - digits.Length);
             s = ConvertSuperscript(s);
