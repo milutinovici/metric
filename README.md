@@ -1,8 +1,13 @@
 # SI Measurement Units #
 
-**MeasurementUnits** is a .Net library written in C#, designed to help developers who are dealing with measurement units. 
+**MeasurementUnits** is a .Net library written in C#, designed to help developers who are dealing with measurement units. It allows you to do calculations and the library figures out resulting units.
 
 ## Usage ##
+There are 2 enums and 1 immutable struct that you need to know.
+
+- BaseUnit - enum which represents all base SI units (meters,seconds,grams..) 
+- Prefix - enum which represents multiples (kilo, mega, mili, micro...)
+- Unit - struct that brings it all together
 
 Want to instantiate  8km^3? You can do it like so:
 > `var u1 = new Unit(8, Prefix.k, BaseUnit.m, 3);`
@@ -18,7 +23,7 @@ result will be equal to 2km
 
 Power them:
 
-`var u4 = u2.Pow(0.5);`
+> `var u4 = u2.Pow(0.5);`
 
 result will again be 2km
 
