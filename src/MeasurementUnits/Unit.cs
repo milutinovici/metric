@@ -7,7 +7,7 @@ namespace MeasurementUnits
 {
     public enum BaseUnit : sbyte { m = 1, g, s, A, K, cd, mol }
     
-    public struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable
+    public struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable, IFormattable
     {
         sbyte[] Powers { get; } 
         Prefix[] Prefixes { get; }
@@ -269,14 +269,18 @@ namespace MeasurementUnits
         }
         public override string ToString()
         {
-            return ToString("");
+            return ToString(null, System.Globalization.CultureInfo.CurrentCulture);
         }
         public string ToString(string format)
         {
-            format = format.ToLower();
-            bool fancy = !format.Contains("c"); // common formmating 
-            bool useDivisor = format.Contains("d"); // use '/'
-            bool baseOnly = format.Contains("b"); // base units only
+            return ToString(format, System.Globalization.CultureInfo.CurrentCulture);
+        }
+        public string ToString(string format, IFormatProvider formatProvider)
+        {
+            format = (format ?? "").ToUpperInvariant();
+            bool fancy = !format.Contains("C"); // common formmating 
+            bool useDivisor = format.Contains("D"); // use '/'
+            bool baseOnly = format.Contains("B"); // base units only
 
             double quantity;
             IEnumerable<SingleUnit> singles;
@@ -297,15 +301,15 @@ namespace MeasurementUnits
                 {
                     var numerator = string.Join(fancy ? SingleUnit.Dot : "*", group.First().Select(x => x.ToString(fancy)));
                     var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
-                    return $"{quantity}{numerator}/{denominator}";
+                    return $"{quantity.ToString(formatProvider)}{numerator}/{denominator}";
                 }
                 else if(group.First().First().Power < 0)
                 {
                     var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
-                    return $"{quantity}/{denominator}";
+                    return $"{quantity.ToString(formatProvider)}/{denominator}";
                 }
             }
-            return $"{quantity}{string.Join(fancy ? SingleUnit.Dot : "*", singles.Select(x => x.ToString(fancy)))}";
+            return $"{quantity.ToString(formatProvider)}{string.Join(fancy ? SingleUnit.Dot : "*", singles.Select(x => x.ToString(fancy)))}";
         }
         static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
         {
@@ -377,6 +381,7 @@ namespace MeasurementUnits
             }
             return result;
         }
+
         #region Operators
         public static Unit operator +(Unit u1)
         {
