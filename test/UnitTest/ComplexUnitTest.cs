@@ -129,6 +129,20 @@ namespace UnitTest
             Assert.Equal("1mm/s^2", u.ToString("dc"));
         }
 
+        [Fact]
+        public void CreateDerivedUnitPrefixed()
+        {
+            var u = Unit.Create(Prefix.m, "F");
+            Assert.Equal("1mF", u.ToString());
+        }
+
+        [Fact]
+        public void CreateDerivedUnitPrefixed2()
+        {
+            var u = Unit.Create(Prefix.m, "Gy");
+            Assert.Equal("1mGy", u.ToString());
+        }
+
     }
 }
 

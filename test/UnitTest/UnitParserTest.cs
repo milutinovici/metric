@@ -119,22 +119,6 @@ namespace UnitTest
         }
 
         [Fact]
-        public void ParseDerivedUnitPrefixed2()
-        {
-            string s = "13mF";
-            var u = Unit.Parse(s);
-            Assert.Equal("13mF", u.ToString());
-        }
-
-        [Fact]
-        public void ParseDerivedUnitPrefixed3()
-        {
-            string s = "13mGy";
-            var u = Unit.Parse(s);
-            Assert.Equal("13mGy", u.ToString());
-        }
-
-        [Fact]
         public void ParseDerivedUnitPoweredPrefixed()
         {
             string s = "1mV^-3";
