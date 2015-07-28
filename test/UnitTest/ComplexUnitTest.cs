@@ -1,5 +1,4 @@
 ﻿using MeasurementUnits;
-using System.Linq;
 using Xunit;
 
 namespace UnitTest

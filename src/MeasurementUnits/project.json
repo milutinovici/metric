@@ -1,7 +1,14 @@
 {
+  "title" : "SI Measurement Units",
   "authors": ["Ivan Milutinović"],
   "description": "Library designed to help developers who are dealing with SI measurement units.",
   "version": "0.3.0",
+  "tags": [ "si", "measurement", "units" ],
+  "projectUrl": "https://github.com/milutinovici/MeasurementUnits",
+  "repository": { 
+    "type": "git", 
+    "url": "https://github.com/milutinovici/MeasurementUnits" 
+  },
   "compilationOptions": {
     "warningsAsErrors": true
   },
