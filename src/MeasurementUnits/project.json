@@ -3,7 +3,7 @@
   "authors": ["Ivan Milutinović"],
   "description": "Library designed to help developers who are dealing with SI measurement units.",
   "version": "0.3.0",
-  "tags": [ "si", "measurement", "units" ],
+  "tags": [ "si", "measurement", "unit", "units", "metric" ],
   "projectUrl": "https://github.com/milutinovici/MeasurementUnits",
   "repository": { 
     "type": "git", 
@@ -16,8 +16,7 @@
 
   },
   "frameworks": {
-    "dnx451": { },
-    "dnxcore50": {
+    "dotnet": {
       "dependencies": {
         "System.Runtime": "4.0.20-*",
         "System.Linq": "4.0.0-*",
