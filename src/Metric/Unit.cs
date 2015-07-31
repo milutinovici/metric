@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 
-namespace MeasurementUnits
+namespace Metric
 {
     public enum BaseUnit : sbyte { m = 1, g, s, A, K, cd, mol }
     
@@ -72,7 +72,7 @@ namespace MeasurementUnits
             {
                 if(factor.Powers[i] != 0)
                 {
-                    sbyte temp = (sbyte)(Powers[i] / factor.Powers[i]);
+                    var temp = (sbyte)(Powers[i] / factor.Powers[i]);
                     if(temp == 0 || (power.HasValue && Math.Sign(power.Value * temp) == -1))
                     {
                         return 0;
@@ -97,7 +97,7 @@ namespace MeasurementUnits
         {
             if(Math.Abs(power) < 1)
             {
-                sbyte reciprocal = (sbyte)(1/power);
+                var reciprocal = (sbyte)(1/power);
                 if(Powers.Any(x => x % reciprocal != 0))
                     throw new DimensionSplitException(this, "You can have only integer powers");
             }
@@ -315,7 +315,7 @@ namespace MeasurementUnits
         {
             q = 1;
             var array = DerivedUnits
-            .Select(derived => new { Key = derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
+            .Select(derived => new { derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
             .Where(x => x.Power != 0)
             .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power)).ToArray();
             var optimal = array.FirstOrDefault();

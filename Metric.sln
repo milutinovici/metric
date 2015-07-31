@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.23107.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "MeasurementUnits", "src\MeasurementUnits\MeasurementUnits.xproj", "{9FECCC88-EAEC-4878-8072-23FF6E64E96E}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Metric", "src\Metric\Metric.xproj", "{9FECCC88-EAEC-4878-8072-23FF6E64E96E}"
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "UnitTest", "test\UnitTest\UnitTest.xproj", "{FD9E17BF-716D-494A-82E1-444F07849CC0}"
 EndProject

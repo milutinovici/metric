@@ -1,17 +1,22 @@
 {
-    "compilationOptions": {
-        "warningsAsErrors": true
-    },
-    "dependencies": {
-        "MeasurementUnits": "0.3.0-*",
-        "xunit": "2.1.0-*",
-        "xunit.runner.dnx": "2.1.0-*"
-    },
-    "commands": {
-        "test": "xunit.runner.dnx"
-    },
-    "frameworks": {
-        "dnx451": { },
-	    "dnxcore50": { }
+  "compilationOptions": {
+    "warningsAsErrors": true
+  },
+  "dependencies": {
+    "xunit": "2.1.0-*",
+    "xunit.runner.dnx": "2.1.0-*",
+    "Metric": "0.3.0"
+  },
+  "commands": {
+    "test": "xunit.runner.dnx"
+  },
+  "frameworks": {
+    "dnxcore50": {
+      "dependencies": {
+        "System.Runtime": "4.0.20-*",
+        "System.Linq": "4.0.0-*",
+        "System.Runtime.Extensions": "4.0.0-*"
+      }
     }
+  }
 }

@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 
-namespace MeasurementUnits
+namespace Metric
 {
     class UnitParser
     {
@@ -59,7 +59,7 @@ namespace MeasurementUnits
                 {
                     if (linearUnit.Length - test.Length == 1)
                     {
-                        Prefix px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
+                        var px = (Prefix)Enum.Parse(typeof(Prefix), linearUnit[0].ToString());
                         return Unit.Create(px, test);
                     }
                     else return Unit.Create(test);

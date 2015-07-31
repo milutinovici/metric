@@ -1,4 +1,4 @@
-﻿using MeasurementUnits;
+﻿using Metric;
 using Xunit;
 
 namespace UnitTest

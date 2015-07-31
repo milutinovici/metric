@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace MeasurementUnits
+namespace Metric
 {
     public class IncomparableUnitsException : Exception
     {

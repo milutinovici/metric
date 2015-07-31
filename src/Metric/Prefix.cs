@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
 
-namespace MeasurementUnits
+namespace Metric
 {
     public enum Prefix : sbyte
     {

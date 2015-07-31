@@ -1,13 +1,13 @@
 {
-  "title" : "SI Measurement Units",
+  "title" : "Metric.NET",
   "authors": ["Ivan Milutinović"],
-  "description": "Library designed to help developers who are dealing with SI measurement units.",
+  "description": "Library designed to help developers who are dealing with metric units.",
   "version": "0.3.0",
   "tags": [ "si", "measurement", "unit", "units", "metric" ],
-  "projectUrl": "https://github.com/milutinovici/MeasurementUnits",
+  "projectUrl": "https://github.com/milutinovici/metric",
   "repository": { 
     "type": "git", 
-    "url": "https://github.com/milutinovici/MeasurementUnits" 
+    "url": "https://github.com/milutinovici/metric" 
   },
   "compilationOptions": {
     "warningsAsErrors": true
