@@ -2,6 +2,8 @@
 
 **Metric.NET** is a library written in C#, designed to help developers who are dealing with measurement units. It allows you to do calculations and the library figures out resulting units.
 
+[Nuget](https://www.nuget.org/packages/Metric)
+
 ## Usage ##
 There are 2 enums and 1 immutable struct that you need to know.
 
