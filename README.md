@@ -31,13 +31,13 @@ result will again be 2km
 
 Or add and substract them if it makes sense, i.e. u cannot add kg to m
 
-> `var distance = Unit.Parse("3km") + Unit.Parse("20m")`
+> `var distance = new Unit(3, Prefix.k, BaseUnit.m) + new Unit(20, BaseUnit.m);`
 
 distance will be equal to 3020m, as expected.
 
 Compare them if it makes sense
 
-> `bool isGreater = Unit.Parse("3km") > Unit.Parse("20m")`
+> `bool isGreater = length > distance`
 
 Library recognizes derived units. So if you for example instantiate:
 
