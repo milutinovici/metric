@@ -41,9 +41,9 @@ Compare them if it makes sense
 
 Library recognizes derived units. So if you for example instantiate:
 
-> `var force = Unit.Parse("1kg*m*s^-2");`
+> `var force = new Unit(1, BaseUnit.g) * new Unit(1, BaseUnit.m) * new Unit(1, BaseUnit.s, -2);`
 
-force.ToString() will be "1N"
+force.ToString() will be "1mN"
 
 You can also use factory method to create Derived units
 
