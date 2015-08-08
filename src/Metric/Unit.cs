@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 
@@ -248,12 +249,12 @@ namespace Metric
         }
         public int CompareTo(Unit other)
         {
-            if (IsComparable(other))
+            if (IsComparable(other) == false)
             {
-                var power = Power10Difference(other);
-                return (Math.Pow(10, power) * Quantity).CompareTo(other.Quantity);
+                throw new IncomparableUnitsException(this, other, "There you go mixing them again...");
             }
-            throw new IncomparableUnitsException(this, other, "There you go mixing them again...");
+            var power = Power10Difference(other);
+            return (Math.Pow(10, power) * Quantity).CompareTo(other.Quantity);
         }
         public int CompareTo(object obj)
         {
@@ -278,9 +279,9 @@ namespace Metric
         public string ToString(string format, IFormatProvider formatProvider)
         {
             format = (format ?? "").ToUpperInvariant();
-            bool fancy = !format.Contains("C"); // common formmating 
-            bool useDivisor = format.Contains("D"); // use '/'
-            bool baseOnly = format.Contains("B"); // base units only
+            bool fancy = !ContainsIgnoreCase(format, "C"); // common formmating 
+            bool useDivisor = ContainsIgnoreCase(format, "D"); // use '/'
+            bool baseOnly = ContainsIgnoreCase(format, "B"); // base units only
 
             double quantity;
             IEnumerable<SingleUnit> singles;
@@ -381,7 +382,10 @@ namespace Metric
             }
             return result;
         }
-
+        static bool ContainsIgnoreCase(string corpus, string key)
+        {
+            return CultureInfo.CurrentCulture.CompareInfo.IndexOf(corpus, key, CompareOptions.IgnoreCase) >= 0;
+        }
         #region Operators
         public static Unit operator +(Unit u1)
         {
