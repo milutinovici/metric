@@ -278,7 +278,7 @@ namespace Metric
         }
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            format = (format ?? "").ToUpperInvariant();
+            format = (format ?? "");
             bool fancy = !ContainsIgnoreCase(format, "C"); // common formmating 
             bool useDivisor = ContainsIgnoreCase(format, "D"); // use '/'
             bool baseOnly = ContainsIgnoreCase(format, "B"); // base units only
