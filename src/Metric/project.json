@@ -2,26 +2,28 @@
   "title" : "Metric.NET",
   "authors": ["Ivan Milutinović"],
   "description": "Library designed to help developers who are dealing with SI measurement units.",
-  "version": "0.3.0",
-  "tags": [ "si", "measurement", "unit", "units", "metric" ],
-  "projectUrl": "https://github.com/milutinovici/metric",
-  "repository": { 
-    "type": "git", 
-    "url": "https://github.com/milutinovici/metric" 
+  "version": "0.4.0",
+  "packOptions": {
+    "licenseUrl": "https://opensource.org/licenses/MIT",
+    "tags": [ "si", "measurement", "unit", "units", "metric" ],
+    "projectUrl": "https://github.com/milutinovici/metric",
+    "repository": { 
+      "type": "git", 
+      "url": "https://github.com/milutinovici/metric" 
+    }
   },
-  "compilationOptions": {
-    "warningsAsErrors": true
-  },
-  "dependencies": {
-
+  "buildOptions": {
+    "warningsAsErrors": true,
+    "debugType": "portable"
   },
   "frameworks": {
-    "dotnet": {
-      "dependencies": {
-        "System.Runtime": "4.0.20-*",
-        "System.Linq": "4.0.0-*",
-        "System.Runtime.Extensions": "4.0.0-*"
-      }
-    }
+    "netstandard1.0": {
+       "dependencies": {
+         "System.Runtime": "4.1.0",
+         "System.Runtime.Extensions": "4.1.0",
+         "System.Linq": "4.1.0",
+         "System.Globalization": "4.0.11"
+       }
+     }
   }
 }
