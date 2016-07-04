@@ -35,7 +35,7 @@ namespace Metric
             {
                 int pw = 1;
                 var unit = singleUnit.Split('^');
-                if (unit.Count() > 1)
+                if (unit.Length > 1)
                 {
                     pw = int.Parse(unit[1]);
                 }

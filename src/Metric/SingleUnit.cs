@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
 
 namespace Metric
 {
@@ -55,10 +54,10 @@ namespace Metric
                 sb.Append(Minus);
                 power *= -1;
             }
-            var ints = power.ToString().ToCharArray().Select(x => (int)char.GetNumericValue(x));
 
-            foreach (var num in ints)
+            foreach (var ch in power.ToString())
             {
+                int num = (int)char.GetNumericValue(ch);
                 sb.Append(SuperscriptDigits[num]);
             }
             return sb.ToString();
