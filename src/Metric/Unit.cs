@@ -100,7 +100,7 @@ namespace Metric
             {
                 var reciprocal = (sbyte)(1/power);
                 if(Powers.Any(x => x % reciprocal != 0))
-                    throw new DimensionSplitException(this, "You can have only integer powers");
+                    throw new DimensionSplitException(this, power);
             }
             var powers = Powers.Select(x => (sbyte)(x * power)).ToArray();
             return new Unit(Math.Pow(Quantity, power), Prefixes, powers);
@@ -251,7 +251,7 @@ namespace Metric
         {
             if (IsComparable(other) == false)
             {
-                throw new IncomparableUnitsException(this, other, "There you go mixing them again...");
+                throw new IncomparableUnitsException(this, other);
             }
             var power = Power10Difference(other);
             return (Math.Pow(10, power) * Quantity).CompareTo(other.Quantity);
@@ -264,7 +264,7 @@ namespace Metric
             }
             if (!(obj is Unit))
             {
-                throw new IncomparableUnitsException(this, obj, "There you go mixing them again...");
+                throw new IncomparableUnitsException(this, obj);
             }
             return CompareTo((Unit)obj);
         }
@@ -414,7 +414,7 @@ namespace Metric
                 var newUnit = new Unit(quantity, prefixes, u1.Powers);
                 return newUnit;
             }
-            throw new IncomparableUnitsException(u1, u2, "You can't mix them. You just can't");
+            throw new IncomparableUnitsException(u1, u2);
         }
 
         public static Unit operator -(Unit u1, Unit u2)
@@ -428,7 +428,7 @@ namespace Metric
                 var newUnit = new Unit(quantity, prefixes, u1.Powers);
                 return newUnit;
             }
-            throw new IncomparableUnitsException(u1, u2, "You can't mix them. You just can't");
+            throw new IncomparableUnitsException(u1, u2);
         }
 
         public static Unit operator *(Unit u1, Unit u2)
