@@ -20,6 +20,7 @@
     "netstandard1.0": {
        "dependencies": {
          "System.Runtime": "4.1.0",
+         "System.Numerics.Vectors": "4.1.1",
          "System.Runtime.Extensions": "4.1.0",
          "System.Linq": "4.1.0",
          "System.Globalization": "4.0.11"

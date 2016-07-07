@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-
+using System.Numerics;
 
 namespace Metric
 {
@@ -10,8 +10,9 @@ namespace Metric
     
     public struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable, IFormattable
     {
-        sbyte[] Powers { get; } 
-        Prefix[] Prefixes { get; }
+        static int Length = Vector<sbyte>.Count;
+        Vector<sbyte> Powers { get; } 
+        Vector<sbyte> Prefixes { get; }
         public double Quantity { get; }
 
         static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit>
@@ -41,21 +42,25 @@ namespace Metric
 
         public Unit(double quantity, BaseUnit baseUnit, sbyte power = 1)
         {
-            this.Powers = new sbyte[7];
-            this.Prefixes = new Prefix[7];
+            
+            this.Prefixes = new Vector<sbyte>();
             if(baseUnit > 0)
             {
-                this.Powers[(sbyte)baseUnit - 1] = power;
+                var powers = new sbyte[Length];
+                powers[(sbyte)baseUnit - 1] = power;
+                this.Powers = new Vector<sbyte>(powers);
             }
             this.Quantity = quantity;
         }
         public Unit(double quantity, Prefix prefix, BaseUnit baseUnit, sbyte power = 1)
             : this(quantity, baseUnit, power)
         {
-            this.Prefixes[(sbyte)baseUnit - 1] = prefix;
+            var prefixes = new sbyte[Length];
+                prefixes[(sbyte)baseUnit - 1] = (sbyte)prefix;
+            this.Prefixes = new Vector<sbyte>(prefixes);
 
         }
-        Unit(double quantity, Prefix[] prefixes, sbyte[] powers)
+        Unit(double quantity, Vector<sbyte> prefixes, Vector<sbyte> powers)
         {
             this.Quantity = quantity;
             this.Powers = powers;
@@ -69,7 +74,7 @@ namespace Metric
         public sbyte HasFactor(Unit factor)
         {
             sbyte? power = null;
-            for(sbyte i = 0; i < Powers.Length; i++)
+            for(sbyte i = 0; i < Length; i++)
             {
                 if(factor.Powers[i] != 0)
                 {
@@ -99,11 +104,16 @@ namespace Metric
             if(Math.Abs(power) < 1)
             {
                 var reciprocal = (sbyte)(1/power);
-                if(Powers.Any(x => x % reciprocal != 0))
-                    throw new DimensionSplitException(this, power);
+                var powers = new sbyte[Length];
+                for(sbyte i = 0; i < Length; i++) {
+                    if(Powers[i] % reciprocal != 0) {
+                        throw new DimensionSplitException(this, power);
+                    }
+                    powers[i] = (sbyte)(Powers[i] / reciprocal);
+                }
+                return new Unit(Math.Pow(Quantity, power), Prefixes, new Vector<sbyte>(powers));
             }
-            var powers = Powers.Select(x => (sbyte)(x * power)).ToArray();
-            return new Unit(Math.Pow(Quantity, power), Prefixes, powers);
+            return new Unit(Math.Pow(Quantity, power), Prefixes, Powers * (sbyte)power);
         }
         /// <summary>
         /// Checks whether a unit with a given symbol exists
@@ -145,18 +155,15 @@ namespace Metric
                 return new Unit(1, prefix, bu);
             }
             var powers = DerivedUnits[symbol].Powers;
-            var pi = powers.Select((power, index) => new { power, index }).FirstOrDefault(x => x.power != 0 && (sbyte)prefix % x.power == 0);
-            if (pi != null)
-            {
-                var prefixes = new Prefix[powers.Length];
-                DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
-                prefixes[pi.index] += (sbyte)((sbyte)(prefix) / pi.power);
-                return new Unit(1, prefixes, powers);
+            for(sbyte i = 0; i < Length; i++) {
+                if(powers[i] != 0 && (sbyte)prefix % powers[i] == 0) {
+                    var prefixes = new sbyte[Length];
+                    DerivedUnits[symbol].Prefixes.CopyTo(prefixes, 0);
+                    prefixes[i] += (sbyte)((sbyte)(prefix) / powers[i]);
+                    return new Unit(1, new Vector<sbyte>(prefixes), powers);
+                }
             }
-            else
-            {
-                return new Unit(Math.Pow(10, (sbyte)prefix), DerivedUnits[symbol].Prefixes, powers);
-            }
+            return new Unit(Math.Pow(10, (sbyte)prefix), DerivedUnits[symbol].Prefixes, powers);
         }
         /// <summary>
         /// Parse specified string to Unit
@@ -194,11 +201,11 @@ namespace Metric
         public Unit ChangePrefix(Prefix prefix, BaseUnit baseUnit)
         {
             int difference = ((sbyte)GetPrefix(baseUnit) - (sbyte)prefix) * GetPower(baseUnit);
-            var prefixes = new Prefix[Prefixes.Length];
+            var prefixes = new sbyte[Length];
             Prefixes.CopyTo(prefixes, 0);
-            prefixes[(sbyte)baseUnit - 1] = prefix;
+            prefixes[(sbyte)baseUnit - 1] = (sbyte)prefix;
             double quantity = Quantity * Math.Pow(10, difference);
-            return new Unit(quantity, prefixes, Powers);
+            return new Unit(quantity, new Vector<sbyte>(prefixes), Powers);
         }
         /// <summary>
         /// Get the prefix of the specified base unit
@@ -208,8 +215,8 @@ namespace Metric
         public Prefix GetPrefix(BaseUnit baseUnit)
         {
             var index = (sbyte)baseUnit;
-            if (index > 0 && index <= Powers.Length)
-                return Prefixes[index - 1];
+            if (index > 0 && index <= Length)
+                return (Prefix)Prefixes[index - 1];
             else return 0;
         }
         /// <summary>
@@ -219,7 +226,7 @@ namespace Metric
         /// <returns>sbyte</returns>
         public sbyte GetPower(BaseUnit baseUnit)
         {
-            if (baseUnit > 0 && (sbyte)baseUnit < Powers.Length)
+            if (baseUnit > 0 && (sbyte)baseUnit < Length)
                 return Powers[(sbyte)baseUnit - 1];
             else return 0;
         }
@@ -245,7 +252,7 @@ namespace Metric
         }
         public bool IsComparable(Unit other)
         {
-            return Powers.SequenceEqual(other.Powers);
+            return Powers == other.Powers;
         }
         public int CompareTo(Unit other)
         {
@@ -289,7 +296,7 @@ namespace Metric
             {
                 var self = this;
                 quantity = self.Quantity;
-                singles = Powers.Select((x, i) => new SingleUnit(self.Prefixes[i], ((BaseUnit)(i + 1)).ToString(), self.Powers[i])).Where(x => x.Power != 0);
+                singles = GetSingleUnits();
             }
             else
             {
@@ -318,7 +325,13 @@ namespace Metric
             var array = DerivedUnits
             .Select(derived => new { derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
             .Where(x => x.Power != 0)
-            .OrderByDescending(x => x.Unit.Powers.Sum(y => Math.Abs(y)) * Math.Abs(x.Power)).ToArray();
+            .OrderByDescending(x => {
+                short sum = 0;
+                for(sbyte i = 0; i < Length; i++) {
+                    sum += Math.Abs(x.Unit.Powers[i]);
+                }
+                return sum * Math.Abs(x.Power);
+            }).ToArray();
             var optimal = array.FirstOrDefault();
             if (optimal != null)
             {
@@ -332,11 +345,15 @@ namespace Metric
             else
             {
                 q = unit.Quantity;
-                return unit.Powers.Select((x, i) =>
-                {
-                    var baseUnit = ((BaseUnit)(i + 1));
-                    return new SingleUnit(unit.GetPrefix(baseUnit), baseUnit.ToString(), unit.Powers[i]);
-                }).Where(x => x.Power != 0);
+                return unit.GetSingleUnits();
+            }
+        }
+        IEnumerable<SingleUnit> GetSingleUnits() {
+            for(sbyte i = 0; i < Length; i++) {
+                if(Powers[i] != 0) {
+                    var baseUnit = (BaseUnit)(i + 1);
+                    yield return new SingleUnit((Prefix)Prefixes[i], baseUnit.ToString(), Powers[i]);
+                }
             }
         }
         Unit NewQuantity(double quantity)
@@ -346,7 +363,7 @@ namespace Metric
         int Power10Difference(Unit other)
         {
             int diff = 0;
-            for (int i = 0; i < Prefixes.Length; i++)
+            for (int i = 0; i < Length; i++)
             {
                 if (Powers[i] != 0 && other.Powers[i] != 0)
                 {
@@ -355,12 +372,12 @@ namespace Metric
             }
             return diff;
         }
-        Prefix[] PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
+        Vector<sbyte> PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
         {
-            var result = new Prefix[Prefixes.Length];
+            var result = new sbyte[Length];
             diff1 = 0;
             diff2 = 0;
-            for (int i = 0; i < Prefixes.Length; i++)
+            for (int i = 0; i < Length; i++)
             {
                 //reduction
                 if ((multiplication == true && Powers[i] + other.Powers[i] == 0) || (multiplication == false && Powers[i] - other.Powers[i] == 0))
@@ -380,7 +397,7 @@ namespace Metric
                     diff1 += ((sbyte)Prefixes[i] - (sbyte)result[i]) * Powers[i];
                 }
             }
-            return result;
+            return new Vector<sbyte>(result);
         }
         static bool ContainsIgnoreCase(string corpus, string key)
         {
@@ -436,7 +453,7 @@ namespace Metric
             var p1 = 0;
             var p2 = 0;
             var prefixes = u1.PrefixMerge(u2, out p1, out p2, true);
-            var powers = u1.Powers.Zip(u2.Powers, (x,y) => (sbyte)(x + y)).ToArray();
+            var powers = u1.Powers + u2.Powers;
             var quantity = u1.Quantity * u2.Quantity * Math.Pow(10, p1) * Math.Pow(10, p2);
             return new Unit(quantity, prefixes, powers);
         }
@@ -446,7 +463,7 @@ namespace Metric
             var p1 = 0;
             var p2 = 0;
             var prefixes = u1.PrefixMerge(u2, out p1, out p2, false);
-            var powers = u1.Powers.Zip(u2.Powers, (x,y) => (sbyte)(x - y)).ToArray();
+            var powers = u1.Powers - u2.Powers;
             var quantity = u1.Quantity * Math.Pow(10, p1) / u2.Quantity * Math.Pow(10, p2);
             return new Unit(quantity, prefixes, powers);
         }
