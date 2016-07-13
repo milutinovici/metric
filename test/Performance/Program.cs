@@ -1,5 +1,4 @@
-﻿using System;
-using BenchmarkDotNet.Running;
+﻿using BenchmarkDotNet.Running;
 
 namespace Performance
 {
@@ -7,7 +6,8 @@ namespace Performance
     {
         public static void Main(string[] args)
         {
-            var summary = BenchmarkRunner.Run<BaseUnitPerformanceTest>();
+            var s1 = BenchmarkRunner.Run<BaseUnitPerformanceTest>();
+            var s2 = BenchmarkRunner.Run<ComplexUnitPerformanceTest>();
         }
     }
 }
