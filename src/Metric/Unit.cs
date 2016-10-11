@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Numerics;
+using System.Text;
 
 namespace Metric
 {
@@ -14,7 +14,7 @@ namespace Metric
         Vector<sbyte> Powers { get; } 
         Vector<sbyte> Prefixes { get; }
         public double Quantity { get; }
-
+        
         static readonly IDictionary<string, Unit> DerivedUnits = new Dictionary<string, Unit>
         {
             ["Ω"] = new Unit(1, Prefix.k, BaseUnit.g) * new Unit(1, BaseUnit.m, 2) * new Unit(1, BaseUnit.s, -3) * new Unit(1, BaseUnit.A, -2),
@@ -289,6 +289,7 @@ namespace Metric
             bool fancy = !ContainsIgnoreCase(format, "C"); // common formmating 
             bool useDivisor = ContainsIgnoreCase(format, "D"); // use '/'
             bool baseOnly = ContainsIgnoreCase(format, "B"); // base units only
+            string dot = fancy ? SingleUnit.Dot : "*";
 
             double quantity;
             IEnumerable<SingleUnit> singles;
@@ -302,45 +303,79 @@ namespace Metric
             {
                 singles = FindDerivedUnits(this, out quantity);
             }
-            if (useDivisor)
+            var numerator = new StringBuilder();
+            var denominator = new StringBuilder();
+
+            foreach(var single in singles) 
             {
-                var group = singles.GroupBy(x => Math.Sign(x.Power));
-                if (group.Count() > 1)
+                if(!useDivisor || (useDivisor && Math.Sign(single.Power) == 1)) 
                 {
-                    var numerator = string.Join(fancy ? SingleUnit.Dot : "*", group.First().Select(x => x.ToString(fancy)));
-                    var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
-                    return $"{quantity.ToString(formatProvider)}{numerator}/{denominator}";
+                    if(numerator.Length != 0)
+                    {
+                        numerator.Append(dot);
+                    }
+                    numerator.Append(single.ToString(fancy));
                 }
-                else if(group.First().First().Power < 0)
+                else if(useDivisor)
                 {
-                    var denominator = string.Join(fancy ? SingleUnit.Dot : "*", group.Last().Select(x => x.Reciprocal().ToString(fancy)));
-                    return $"{quantity.ToString(formatProvider)}/{denominator}";
+                    if(denominator.Length != 0)
+                    {
+                        denominator.Append(dot);
+                    }
+                    denominator.Append(single.Reciprocal().ToString(fancy));
                 }
             }
-            return $"{quantity.ToString(formatProvider)}{string.Join(fancy ? SingleUnit.Dot : "*", singles.Select(x => x.ToString(fancy)))}";
+            if (denominator.Length > 0 && numerator.Length > 0)
+            {
+                return $"{quantity.ToString(formatProvider)}{numerator.ToString()}/{denominator.ToString()}";
+            }
+            else if(denominator.Length > 0)
+            {
+                return $"{quantity.ToString(formatProvider)}/{denominator.ToString()}";
+            }
+            else 
+            {
+                return $"{quantity.ToString(formatProvider)}{numerator.ToString()}";
+            }
+
         }
+
         static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
         {
             q = 1;
-            var array = DerivedUnits
-            .Select(derived => new { derived.Key, Power = unit.HasFactor(derived.Value), Unit = derived.Value })
-            .Where(x => x.Power != 0)
-            .OrderByDescending(x => {
-                short sum = 0;
-                for(sbyte i = 0; i < Length; i++) {
-                    sum += Math.Abs(x.Unit.Powers[i]);
-                }
-                return sum * Math.Abs(x.Power);
-            }).ToArray();
-            var optimal = array.FirstOrDefault();
-            if (optimal != null)
+            var optimal = new KeyValuePair<string, Unit>(null, new Unit());
+            sbyte optimalPower = 0;
+            short lastSum = 0;
+            foreach(var derived in DerivedUnits)
             {
-                Unit remainder = unit / optimal.Unit.Pow(optimal.Power);
+                var power = unit.HasFactor(derived.Value);
+                if(power != 0)
+                {
+                    short sum = 0;
+                    for(sbyte i = 0; i < Length; i++) {
+                        sum += Math.Abs(derived.Value.Powers[i]);
+                    }
+                    sum *= Math.Abs(power);
+                    if(sum > lastSum)
+                    {
+                        optimal = derived;
+                        lastSum = sum;
+                        optimalPower = power;
+                    }
+                }
+            }
+
+            if (optimal.Key != null)
+            {
+                Unit remainder = unit / optimal.Value.Pow(optimalPower);
                 var pow10 = PrefixHelpers.Power10(remainder.Quantity);
-                var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimal.Power);
-                var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimal.Power);
-                return new[] { new SingleUnit(prfx, optimal.Key, optimal.Power) }
-                       .Concat(FindDerivedUnits(remainder.NewQuantity(quantity), out q));
+                var prfx = PrefixHelpers.FindClosestPrefix(pow10 / optimalPower);
+                var quantity = remainder.Quantity / Math.Pow(10, (int)prfx * optimalPower);
+                var list = new List<SingleUnit>();
+                list.Add(new SingleUnit(prfx, optimal.Key, optimalPower));
+                var more = FindDerivedUnits(remainder.NewQuantity(quantity), out q);
+                list.AddRange(more);
+                return list;
             }
             else
             {

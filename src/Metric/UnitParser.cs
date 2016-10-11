@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
 
 namespace Metric
@@ -11,8 +10,19 @@ namespace Metric
         internal static Unit Parse(string s)
         {
             s = s.Replace(" ", "");
-            var digits = new string(s.ToCharArray().TakeWhile(x => char.IsDigit(x) || char.IsPunctuation(x)).ToArray());
-            double quantity = double.Parse(digits);
+            var digits = new StringBuilder();
+            foreach (var x in s)
+            {
+                if(char.IsDigit(x) || char.IsPunctuation(x))
+                {
+                    digits.Append(x);
+                }
+                else
+                {
+                    break;
+                }
+            }
+            double quantity = double.Parse(digits.ToString());
             s = s.Substring(digits.Length, s.Length - digits.Length);
             s = ConvertSuperscript(s);
             var rational = s.Split('/');
@@ -30,7 +40,7 @@ namespace Metric
             char dot;
             char.TryParse(SingleUnit.Dot, out dot);
             var sUnits = s.Split('*', dot);
-            var units = new List<Unit>();
+            var units = new Stack<Unit>();
             foreach (string singleUnit in sUnits)
             {
                 int pw = 1;
@@ -44,9 +54,22 @@ namespace Metric
                     pw *= -1;
                 }
                 Unit u = LinearUnit(unit[0]);
-                units.Add(u.Pow(pw));
+                units.Push(u.Pow(pw));
             }
-            return units.Count == 1 ? units[0] : units.Aggregate((x,y) => x*y);
+            if (units.Count == 1)
+            {
+                return units.Pop();
+            }
+            else
+            {
+                Unit result = units.Pop();
+                while(units.Count > 0) 
+                {
+                    result *= units.Pop();
+                }
+                return result;
+            }
+
         }
 
         static Unit LinearUnit(string linearUnit)
