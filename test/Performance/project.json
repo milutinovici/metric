@@ -6,7 +6,7 @@
     "optimize": true
   },
   "dependencies": {
-    "Metric": "0.4.0",
+    "Metric": "0.6.0",
     "BenchmarkDotNet": "0.9.8" 
   },
   "frameworks": {

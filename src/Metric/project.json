@@ -2,7 +2,7 @@
   "title" : "Metric.NET",
   "authors": ["Ivan Milutinović"],
   "description": "Library designed to help developers who are dealing with SI measurement units.",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "packOptions": {
     "licenseUrl": "https://opensource.org/licenses/MIT",
     "tags": [ "si", "measurement", "unit", "units", "metric" ],
