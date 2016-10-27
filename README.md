@@ -17,6 +17,10 @@ Want to instantiate  8km^3? You can do it like so:
 Or you can parse it from a string:
 > `var area = Unit.Parse("4km^2");`
 
+You can also use extension methods for int and double, located in Metric.Extensions
+
+> `var width = 6.m();`
+
 Now that you have these units you can multiply or divide them
 
 > `var height = volume / area;`
