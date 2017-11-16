@@ -122,7 +122,7 @@ namespace UnitTest
         {
             var u1 = new Unit(1, BaseUnit.K);
             var u2 = u1 + 100;
-            Assert.Equal(u2.Quantity, 101);
+            Assert.Equal(101, u2.Quantity);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace UnitTest
         {
             var u1 = new Unit(1, BaseUnit.K);
             var u2 = u1 - 100;
-            Assert.Equal(u2.Quantity, -99);
+            Assert.Equal(-99, u2.Quantity);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace UnitTest
         {
             var u1 = new Unit(5, BaseUnit.K);
             var u2 = u1 * 4;
-            Assert.Equal(u2.Quantity, 20);
+            Assert.Equal(20, u2.Quantity);
         }
 
         [Fact]

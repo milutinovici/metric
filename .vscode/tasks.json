@@ -1,24 +1,49 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=733558
     // for the documentation about the tasks.json format
-    "version": "0.1.0",
-    "command": "dotnet",
-    "isShellCommand": true,
-    "args": [],
+    "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "build",
-            "args": [ "*/*/project.json" ],
-            "isBuildCommand": true,
-            "showOutput": "silent",
+            "label": "build",
+            "command": "dotnet build",
+            "type": "shell",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
             "problemMatcher": "$msCompile"
         },
         {
-            "taskName": "test",
-            "args": [ "test/UnitTest/project.json" ],
-            "isTestCommand": true,
-            "showOutput": "silent",
-            "problemMatcher": "$msCompile"
+            "label": "test",
+            "command": "dotnet xunit",
+            "type": "shell",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/test/UnitTest"
+            }
+        },
+        {
+            "label": "perf",
+            "command": "dotnet Performance.dll",
+            "type": "shell",
+            "group": "test",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile",
+            "options": {
+                "cwd": "${workspaceFolder}/test/Performance/bin/Release/netcoreapp2.0"
+            }
         }
     ]
 }

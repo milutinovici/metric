@@ -2,21 +2,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": ".NET Core Launch",
+            "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build",
-            "program": "${workspaceRoot}/test/UnitTest/bin/Debug/netcoreapp1.0/UnitTest.dll",
+            "program": "${workspaceFolder}/test/bin/Debug/netcoreapp2.0/UnitTest.dll",
             "args": [],
-            "cwd": "${workspaceRoot}",
-            "stopAtEntry": true,
-            "externalConsole": false
-        },
-        {
-            "name": ".NET Core Attach",
-            "type": "coreclr",
-            "request": "attach",
-            "processId": 0
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
         }
     ]
 }
