@@ -8,9 +8,9 @@ namespace Metric
         da = 1, h = 2, k = 3, M = 6, G = 9, T = 12, P = 15, E = 18, Z = 21, Y = 24
     }
 
-    static class PrefixHelpers
+    public static class PrefixHelpers
     {
-        internal static Prefix FindClosestPrefix(int powerOfTen)
+        public static Prefix FindClosestPrefix(int powerOfTen)
         {
             int absolutePower = Math.Abs(powerOfTen);
             Prefix prefix;
@@ -33,7 +33,7 @@ namespace Metric
             return prefix;
         }
 
-        internal static int Power10(double quantity)
+        public static int Power10(double quantity)
         {
             int powerOfTen = 0;
             if (Math.Abs(quantity) > 1)
