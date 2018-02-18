@@ -17,6 +17,10 @@
     <RepositoryUrl>https://github.com/milutinovici/metric</RepositoryUrl>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <LangVersion>Latest</LangVersion>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="System.Numerics.Vectors" Version="4.4.0-*" />
   </ItemGroup>

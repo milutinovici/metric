@@ -2,7 +2,7 @@
 
 namespace Metric
 {
-    public struct SingleUnit
+    public readonly struct SingleUnit
     {
         static readonly string[] SuperscriptDigits = { "\u2070", "\u00b9", "\u00b2", "\u00b3", "\u2074", "\u2075", "\u2076", "\u2077", "\u2078", "\u2079" };
         public static readonly string Dot = "\u00B7";

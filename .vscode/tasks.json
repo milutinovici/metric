@@ -17,6 +17,16 @@
             "problemMatcher": "$msCompile"
         },
         {
+            "label": "release",
+            "command": "dotnet build -c Release",
+            "type": "shell",
+            "group": "build",
+            "presentation": {
+                "reveal": "silent"
+            },
+            "problemMatcher": "$msCompile"
+        },
+        {
             "label": "test",
             "command": "dotnet xunit",
             "type": "shell",

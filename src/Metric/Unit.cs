@@ -8,9 +8,9 @@ namespace Metric
 {
     public enum BaseUnit : sbyte { m = 1, g, s, A, K, cd, mol }
     
-    public struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable, IFormattable
+    public readonly struct Unit : IEquatable<Unit>, IComparable<Unit>, IComparable, IFormattable
     {
-        static int Length = Vector<sbyte>.Count;
+        static readonly int Length = Vector<sbyte>.Count;
         Vector<sbyte> Powers { get; } 
         Vector<sbyte> Prefixes { get; }
         public double Quantity { get; }
@@ -71,7 +71,7 @@ namespace Metric
         /// </summary>
         /// <param name="factor">The factor u want to check</param>
         /// <returns>Power of the provided factor</returns>
-        public sbyte HasFactor(Unit factor)
+        public sbyte HasFactor(in Unit factor)
         {
             sbyte? power = null;
             for(sbyte i = 0; i < Length; i++)
@@ -250,7 +250,7 @@ namespace Metric
         {
             return Quantity.GetHashCode() * Prefixes.GetHashCode() * Powers.GetHashCode();
         }
-        public bool IsComparable(Unit other)
+        public bool IsComparable(in Unit other)
         {
             return Powers == other.Powers;
         }
@@ -340,7 +340,7 @@ namespace Metric
 
         }
 
-        static IEnumerable<SingleUnit> FindDerivedUnits(Unit unit, out double q)
+        static IEnumerable<SingleUnit> FindDerivedUnits(in Unit unit, out double q)
         {
             q = 1;
             var optimal = new KeyValuePair<string, Unit>(null, new Unit());
@@ -395,7 +395,7 @@ namespace Metric
         {
             return new Unit(quantity, Prefixes, Powers);
         }
-        int Power10Difference(Unit other)
+        int Power10Difference(in Unit other)
         {
             int diff = 0;
             for (int i = 0; i < Length; i++)
@@ -407,7 +407,7 @@ namespace Metric
             }
             return diff;
         }
-        Vector<sbyte> PrefixMerge(Unit other, out int diff1, out int diff2, bool? multiplication)
+        Vector<sbyte> PrefixMerge(in Unit other, out int diff1, out int diff2, bool? multiplication)
         {
             var result = new sbyte[Length];
             diff1 = 0;
